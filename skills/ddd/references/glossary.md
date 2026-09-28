@@ -151,8 +151,7 @@ the official translation.
   sync cross-context calls; mitigate with async messaging or local cache.
   `[prática pós-2020]`
 - **Notification** / *Notificação* — Standard envelope for publishing a domain
-  event across contexts: typeName, version, occurredOn, eventBody, metadata.
-  `[IDDD ch.13]`
+  event across contexts; fields in `context-mapping.md`. `[IDDD ch.13]`
 - **ULID** — Sortable 128-bit identifier; timestamp prefix gives natural
   ordering and B-tree friendly indexes. Modern alternative to UUID v4 when
   ordering matters. `[prática pós-2020]`
@@ -170,12 +169,16 @@ the official translation.
 
 ## Go deeper
 
-| Topic | Reference |
+Teaching mode: after the entry above, load only the one reference that owns
+the concept.
+
+| Concepts | Reference |
 | --- | --- |
-| Aggregate sizing and invariants | `aggregate-design.md` |
-| Building blocks in depth | `tactical-patterns.md` |
-| Strategic design and distillation | `strategic-design.md` |
-| Context map patterns and integration | `context-mapping.md` |
+| Aggregate rules, sizing, invariants | `aggregate-design.md` |
+| Entity, value object, anemic model, service, repository, factory, domain event, outbox, specification | `tactical-patterns.md` |
+| Bounded context, ubiquitous language, subdomain, core domain, distillation | `strategic-design.md` |
+| Context map patterns, ACL, integration, notification envelope | `context-mapping.md` |
 | Event storming formats | `event-storming.md` |
-| Architecture styles | `architecture-styles.md` |
-| Legacy migration | `legacy-migration.md` |
+| Hexagonal, modular monolith, microservices, DIP | `architecture-styles.md` |
+| Strangler fig, bubble context, legacy migration | `legacy-migration.md` |
+| Anything else | This glossary entry; if a reference above clearly owns it, load that one; otherwise say the references do not cover it |

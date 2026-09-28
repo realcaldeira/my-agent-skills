@@ -1,0 +1,29 @@
+{
+  "_comment": "Checker roster for the optional script fan-out. Copy to config/models.json (same folder) and edit that copy. Harness names must match the scripts' built-in harnesses (claude, codex, opencode). 'command' is documentation only and is never executed. 'model': a model id your CLI accepts, or null for the CLI's own default. Optional keys: 'variant' (reasoning effort), 'rates_per_m' ({input, output} list prices in USD per million tokens, used only to estimate cost when the CLI reports none), 'cost_note' (shown in the cost report). Credentials never go here: each CLI reads its own env vars or login.",
+  "default_harness": "opencode",
+  "second_pass_harness": "claude",
+  "harnesses": [
+    {
+      "name": "claude",
+      "command": "claude -p <prompt> --output-format stream-json --verbose --tools WebSearch,WebFetch ...",
+      "model": null,
+      "notes": "Strong checker for pass 2. Reports its own cost, so no rates are needed. Set 'model' to pin a specific model id."
+    },
+    {
+      "name": "codex",
+      "command": "codex exec --json --ephemeral -s read-only -C <sandbox> -c tools.web_search=true -",
+      "model": null,
+      "variant": null,
+      "rates_per_m": {"input": 0, "output": 0},
+      "notes": "Reports tokens but no cost. Fill rates_per_m with your provider's current list prices to get an estimate; zero rates mean no estimate.",
+      "cost_note": "Replace with a note about your plan, e.g. whether this CLI runs on a flat-rate subscription."
+    },
+    {
+      "name": "opencode",
+      "command": "opencode run --format json --agent plan --dir <sandbox> <prompt>",
+      "model": null,
+      "variant": null,
+      "notes": "Cheap checker for pass 1. Set 'model' to a provider/model id configured in your opencode install."
+    }
+  ]
+}

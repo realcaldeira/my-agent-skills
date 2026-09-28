@@ -65,7 +65,7 @@ or named constructor is enough — a factory class is over-engineering.
 - Published **after** the state change commits (transactional outbox when the
   transport can lose messages). `[prática pós-2020]`
 - Schema evolves: version the payload or wrap in a notification envelope
-  (`typeName`, `version`, `occurredOn`, `eventBody`, `metadata`) `[IDDD ch.13]`.
+  (fields in `context-mapping.md`) `[IDDD ch.13]`.
 
 **Smells:** events named `ProcessOrder` (that is a command); events carrying
 huge payloads; events published before commit; "event" classes with setters.
