@@ -21,6 +21,6 @@ node_modules/
 # Skill docs are always tracked, even if their name matches a secret glob
 !skills/**/*.md
 
-# Personal config
+# Local config (not shared)
 skills/fact-check/config/models.json
 .agent/

@@ -1,6 +1,6 @@
 # agent-skills
 
-Personal agent skills repository. One directory per skill, each with a `SKILL.md`
+A collection of agent skills. One directory per skill, each with a `SKILL.md`
 router and (optionally) a `references/` folder holding progressive-disclosure
 knowledge and output templates.
 

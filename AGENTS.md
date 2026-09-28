@@ -1,6 +1,6 @@
 # Working on this repo
 
-Personal agent-skills collection. Before editing anything under `skills/`:
+Agent-skills collection. Before editing anything under `skills/`:
 
 - Read [CONVENTIONS.md](CONVENTIONS.md) — it is the authoring contract.
 - Keep each `SKILL.md` ≤ 150 lines; every command in the input table maps to
