@@ -83,7 +83,8 @@ the adapter: domain → DTO at the edge.
 
 ## Review checklist
 
-- [ ] Domain code free of framework imports?
+- [ ] Domain code free of framework imports (tolerated mapping annotations
+      aside — see `code-review-heuristics.md` §5)?
 - [ ] Ports defined in the domain, implemented in infrastructure?
 - [ ] Module boundaries match bounded contexts (no cross-module internals)?
 - [ ] Deployment split justified by evidence, not fashion?

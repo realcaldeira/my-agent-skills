@@ -1,7 +1,7 @@
 # Glossary — canonical DDD terminology (EN / PT-BR)
 
 Fast lookup. Definitions paraphrased from `[Evans Reference]`, `[Evans DDD]`,
-`[IDDD]`. Literal hallmark phrases appear in quotes. Format:
+and IDDD (`[IDDD ch.N]`). Literal hallmark phrases appear in quotes. Format:
 **Term EN** / *Term PT-BR* — definition — source.
 
 Portuguese variants in common use in Brazil are noted when they differ from
@@ -93,7 +93,7 @@ the official translation.
   part of the ubiquitous language. `[Evans Reference]`
 - **Specification** / *Especificação* — Reusable domain predicate
   (`isSatisfiedBy`), composable with `and`/`or`/`not`. Uses: validation,
-  selection, building to order. `[Evans DDD ch.10]` `[IDDD ch.5,7]`
+  selection, building to order. `[Evans DDD ch.9–10]` `[IDDD ch.5,7]`
 
 ## Supple design
 
@@ -118,9 +118,9 @@ the official translation.
   infrastructure. `[Evans Reference]`
 - **Hexagonal / Ports & Adapters** — Domain at the center; ports declare
   contracts, adapters translate protocols. `[IDDD ch.4]`
-- **CQRS** — Separate write and read models. `[IDDD ch.4, appendix A]`
+- **CQRS** — Separate write and read models. `[IDDD ch.4, appendix A]` `[Fowler]`
 - **Event Sourcing** — State derived from an immutable sequence of domain
-  events. `[IDDD appendix A]`
+  events. `[IDDD ch.4, appendix A]` `[Fowler]`
 - **Unit of Work** / *Unit of Work* — Tracks changes to aggregates during an
   operation and commits them in one transaction. `[Fowler]` `[IDDD ch.14]`
 
@@ -136,14 +136,14 @@ the official translation.
   new system grows around and eventually replaces the legacy.
   `[Fowler]`
 - **Bubble Context** / *Contexto Bolha* — Small new bounded context wrapped in
-  an ACL, grown inside the legacy system. `[prática pós-2020]`
+  an ACL, grown inside the legacy system. `[Evans Legacy 2013]`
 - **Outbox Pattern** / *Padrão Outbox* — Persist the domain event with the
   aggregate change in one transaction, publish afterwards. `[prática pós-2020]`
 - **Saga** / *Saga* — Sequence of local transactions coordinated by events or
-  an orchestrator for cross-aggregate consistency. `[prática pós-2020]`
+  an orchestrator for cross-aggregate consistency. `[IDDD ch.4]`
 - **Process Manager** / *Gerenciador de Processo* — Persistent entity reacting
   to domain events and emitting commands to coordinate a workflow.
-  `[IDDD ch.8]`
+  `[IDDD ch.4,13]`
 - **Compensating Transaction** / *Transação Compensatória* — New business
   event that logically reverses a prior effect. Not an undo — an auditable
   reversal. `[prática pós-2020]`
@@ -152,9 +152,10 @@ the official translation.
   `[prática pós-2020]`
 - **Notification** / *Notificação* — Standard envelope for publishing a domain
   event across contexts; fields in `context-mapping.md`. `[IDDD ch.13]`
-- **ULID** — Sortable 128-bit identifier; timestamp prefix gives natural
-  ordering and B-tree friendly indexes. Modern alternative to UUID v4 when
-  ordering matters. `[prática pós-2020]`
+- **UUIDv7 / ULID** — Time-ordered 128-bit identifiers (UUIDv7 is
+  standardized in RFC 9562); the timestamp prefix gives natural ordering and
+  B-tree friendly indexes. Alternative to random UUIDv4 when ordering
+  matters. `[prática pós-2020]`
 - **Bounded Context Canvas** / *Canvas de Contexto Delimitado* — One-page
   structured description of a bounded context (purpose, classification,
   language, inbound/outbound, constraints). `[DDD Crew]`
@@ -174,11 +175,12 @@ the concept.
 
 | Concepts | Reference |
 | --- | --- |
-| Aggregate rules, sizing, invariants | `aggregate-design.md` |
+| Aggregate rules, sizing, invariants, reasons to break the rules | `aggregate-design.md` |
+| CQRS, event sourcing (and when not to use them) | `cqrs-event-sourcing.md` |
 | Entity, value object, anemic model, service, repository, factory, domain event, outbox, specification | `tactical-patterns.md` |
 | Bounded context, ubiquitous language, subdomain, core domain, distillation | `strategic-design.md` |
 | Context map patterns, ACL, integration, notification envelope | `context-mapping.md` |
-| Event storming formats | `event-storming.md` |
+| Event storming formats, sticky-note colors | `event-storming.md` |
 | Hexagonal, modular monolith, microservices, DIP | `architecture-styles.md` |
 | Strangler fig, bubble context, legacy migration | `legacy-migration.md` |
 | Anything else | This glossary entry; if a reference above clearly owns it, load that one; otherwise say the references do not cover it |

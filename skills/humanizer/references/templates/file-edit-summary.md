@@ -1,7 +1,9 @@
-# Template — Resumo de edição de arquivo (`edit-file`)
+# Template — File edit summary (`edit-file`)
 
-Meta-comentários em pt-BR. O texto gravado no arquivo fica no idioma da fonte —
-nunca traduza. Substitua todos os marcadores `<…>`; apague nada.
+Output language: pt-BR for the meta commentary. The text written to the file
+stays in the language of the source; never translate it. Replace every `<…>`
+placeholder; delete nothing. With several files, repeat the block once per
+file, in the order they were edited.
 
 ```markdown
 # Resumo de edição — `<caminho do arquivo>`
@@ -9,6 +11,7 @@ nunca traduza. Substitua todos os marcadores `<…>`; apague nada.
 ## Edições de prosa
 
 - `<trecho antes>` → `<trecho depois>` — padrão <n> (<nome em inglês>): <por quê, 1 frase>
+- `<trecho>` — detalhe ausente na fonte: <pergunta ao autor>; usada a frase mais simples `<trecho depois>` <omitir se não houver>
 
 ## Elementos preservados
 
@@ -19,16 +22,16 @@ metadados YAML/frontmatter, dados e destinos de link.
 ## Definição de pronto (DoD)
 
 - [ ] Somente prosa foi alterada; nenhum bloco de código, código inline, comando, caminho, YAML, dado ou destino de link mudou.
-- [ ] O arquivo final está no idioma da prosa original; nada foi traduzido.
+- [ ] O arquivo final está no idioma da prosa original, com a ortografia e a pontuação desse idioma; nada foi traduzido.
 - [ ] Nenhum fato, nome, número, data, citação ou referência foi inventado ou perdido.
-- [ ] Os cinco sobreviventes foram revistos após o rascunho: not-X-but-Y, fecho de uma linha, travessão, tríade forçada, rótulo em negrito.
+- [ ] Os cinco sobreviventes (`references/voice-and-guardrails.md`) foram revistos após o rascunho.
 - [ ] Frases de comprimentos variados; voz preservada (regras de `references/voice-and-guardrails.md`).
 ```
 
 ## Definition of Done
 
-- [ ] Only the two summary sections are output; the final text lives in the file, not in the reply.
+- [ ] Only the two summary sections are output per file; the final text lives in the file, not in the reply.
 - [ ] Each edit line shows before/after and the tell that justified it.
 - [ ] The untouched-elements confirmation is explicit and matches what the file actually contains (checked with `git diff --word-diff <path>` when the file is tracked).
-- [ ] Fact audit was run; file mode never invents details to fill a gap — it asks instead.
-- [ ] DoD block inside the summary is completed before answering.
+- [ ] Fact audit was run; file mode never invents details to fill a gap — it asks, or writes a simpler sentence and flags the missing detail as an edit line.
+- [ ] DoD block inside each summary is completed before answering.

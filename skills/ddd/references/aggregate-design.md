@@ -1,6 +1,7 @@
 # Aggregate design — Vernon's four rules
 
-Primary source: `[IDDD ch.10]` ("Effective Aggregate Design").
+Primary source: `[IDDD ch.10]` ("Aggregates"; expands Vernon's "Effective
+Aggregate Design" essays).
 Complements: `[Distilled ch.5]`, `[Evans Reference]`.
 
 Aggregates are the tactical concept that fails most often. Too large: killed
@@ -47,9 +48,10 @@ transactions, simpler tests.
 - Children growing without bound (e.g. `Product` with thousands of
   `BacklogItem`) is a clear signal to split.
 
-**Size smells:** loading the aggregate pulls 100+ objects; simple operations
-touch 50%+ of the state; composition deeper than 3 levels; version conflicts
-between users are frequent.
+**Size smells** (rough thresholds, not from the book
+`[sem fonte verificada]`): loading the aggregate pulls 100+ objects; simple
+operations touch 50%+ of the state; composition deeper than 3 levels; version
+conflicts between users are frequent.
 
 **How to split:** if a "child" has its own lifecycle and rules, it is another
 aggregate. Relate by ID.
@@ -91,9 +93,24 @@ needed.
 rule 1. Either both belong in one aggregate, or the requirement is
 overstated.
 
-**Legitimate exception:** atomic initialization (creating A and B as one
-conceptual act). Even then, consider a creation service that emits both — or a
-single aggregate.
+## Reasons to break the rules `[IDDD ch.10]`
+
+Vernon names four situations where modifying more than one aggregate in a
+transaction (or relaxing the rules) can be justified. Treat them as
+exceptions to argue for explicitly, not defaults:
+
+1. **User interface convenience** — e.g. batch creation of several aggregate
+   instances in one request, when no invariant spans them (atomic creation
+   of A and B as one conceptual act is an example).
+2. **Lack of technical mechanisms** — no messaging/event infrastructure
+   available to deliver eventual consistency.
+3. **Global transactions** — policy or legacy integration forces two-phase
+   commit across resources.
+4. **Query performance** — holding a direct object reference (instead of an
+   ID) when loading by ID is measurably too slow.
+
+An audit that finds a multi-aggregate transaction checks these first; if one
+applies and is documented, report it as a trade-off, not a Rule 4 violation.
 
 ---
 
@@ -118,7 +135,8 @@ and VOs; the root's own state transitions.
 
 ## Anti-patterns
 
-- **God aggregate** — root with 50+ fields and dozens of children. Split.
+- **God aggregate** — root with dozens of fields and children (e.g. 50+
+  fields `[sem fonte verificada]`). Split.
 - **Aggregate without a real invariant** — "these feel like they belong
   together" with no business rule. Convenience only — split.
 - **Cross-aggregate loop** — A's event triggers B, whose event triggers A.

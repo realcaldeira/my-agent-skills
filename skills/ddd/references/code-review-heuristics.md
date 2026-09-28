@@ -1,9 +1,37 @@
 # Code review heuristics — DDD audit checklist
 
-Stack-agnostic signals. Pair each finding with severity
-(`CRÍTICO`/`ALTO`/`MÉDIO`/`BAIXO`), evidence (`path:line` + snippet), source
-tag, and an incremental fix. Detailed rules live in `aggregate-design.md`,
-`tactical-patterns.md`, `context-mapping.md`, `architecture-styles.md`.
+Stack-agnostic signals. Pair each finding with severity (rubric below),
+evidence (`path:line` + snippet), source tag, and an incremental fix. Detailed
+rules live in `aggregate-design.md`, `tactical-patterns.md`,
+`context-mapping.md`, `architecture-styles.md`.
+
+## Severity rubric
+
+Every finding — and every subagent report — uses this scale:
+
+| Severity | Criterion | Examples |
+| --- | --- | --- |
+| **CRÍTICO** | an invariant can be broken or data corrupted/lost | two contexts writing the same tables; a multi-aggregate transaction with no invariant causing lost updates; events published before commit on a lossy transport |
+| **ALTO** | a boundary or ownership violation that blocks evolution | cross-context joins; object references between aggregates; domain code calling persistence APIs; business rules in controllers of a core module |
+| **MÉDIO** | modeling or language drift that raises the cost of change | primitive obsession in the core; command-shaped event names; one term with two meanings |
+| **BAIXO** | naming, style, or local polish | technical suffixes (`Impl`, `Manager`); tolerated mapping annotations |
+
+Scale down one level (or report as a trade-off) when the module is a
+supporting/generic subdomain and step 0 says simple code is acceptable there.
+
+## 0. Is DDD warranted here?
+
+Before applying sections 2–4 and 8 (anemic model, aggregates, value objects,
+persistence) at full severity, classify each audited module as core,
+supporting, or generic, with evidence (business differentiation, rule
+density, change frequency) — `strategic-design.md` owns the definitions.
+Tactical modeling effort belongs in the core domain `[Evans Reference]`.
+For simple supporting/generic modules, CRUD or a Transaction Script is a
+legitimate choice `[Fowler]`; record it as acceptable, not as an anemic-model
+violation. When in doubt, ask whether the project would pass a DDD
+"scorecard" (complex, evolving rules; domain experts available)
+`[IDDD ch.1]`. Cross-context boundary and data-ownership findings
+(section 7) apply to every module.
 
 ---
 
@@ -32,11 +60,13 @@ tag, and an incremental fix. Detailed rules live in `aggregate-design.md`,
 - Object references to other aggregates inside an aggregate (Rule 3 violation).
 - Children collections growing without bound.
 - Repository/ORM calls inside domain methods (lazy loading through injection).
-- Transactions spanning more than one aggregate (Rule 4 violation).
+- Transactions spanning more than one aggregate (Rule 4 violation), unless
+  one of the documented reasons to break the rules applies
+  (`aggregate-design.md`).
 
 ## 4. Value objects vs. primitives
 
-- Money as `BigDecimal` + currency string pairs; dates as bare strings;
+- Money as a bare decimal plus a separate currency string; dates as bare strings;
   emails/IDs as raw strings everywhere. Primitive obsession.
 - Mutable "value" types with setters.
 
@@ -45,8 +75,10 @@ tag, and an incremental fix. Detailed rules live in `aggregate-design.md`,
 - God application service (hundreds of lines of business rules).
   `[IDDD ch.14]`
 - Domain services holding state, or entities reaching into repositories.
-- Infrastructure imports inside domain code (framework annotations aside,
-  coupling to ORM/base classes). `[IDDD ch.4]`
+- Infrastructure coupling inside domain code `[IDDD ch.4]`: mapping
+  annotations/attributes on domain types are tolerated (BAIXO) when they do
+  not shape the model; inheriting ORM base classes, calling persistence APIs,
+  or lazy-loading from the domain is ALTO.
 - Controllers with business logic.
 
 ## 6. Events
@@ -73,8 +105,7 @@ tag, and an incremental fix. Detailed rules live in `aggregate-design.md`,
 ## 9. Tests as evidence
 
 - No tests naming business rules (only CRUD round-trips).
-- Given-When-Then scenarios missing for the core workflows
-  (`templates/strategic-plan.md`).
+- Given-When-Then scenarios missing for the core workflows.
 - Tests full of builder boilerplate → oversized aggregates.
 
 ## Good signals (report these too)

@@ -1,0 +1,133 @@
+{
+  "note": "expect = skill that should load first; \"none\" = none of this repo's skills should load (another installed skill or plain answer is fine).",
+  "cases": [
+    {
+      "prompt": "esse código segue DDD? olha o módulo de pedidos",
+      "expect": "ddd"
+    },
+    {
+      "prompt": "me ajuda a desenhar os bounded contexts de um ERP de varejo",
+      "expect": "ddd"
+    },
+    {
+      "prompt": "what is an aggregate root and when should I not use one?",
+      "expect": "ddd"
+    },
+    {
+      "prompt": "modela o agregado de Pedido com as invariantes de estoque e pagamento",
+      "expect": "ddd"
+    },
+    {
+      "prompt": "audita o PR 42, posso mergear?",
+      "expect": "github-audit"
+    },
+    {
+      "prompt": "faz a triagem das issues abertas",
+      "expect": "github-audit"
+    },
+    {
+      "prompt": "check main before we cut the 2.3.0 release",
+      "expect": "github-audit"
+    },
+    {
+      "prompt": "faz uma auditoria de segurança nesse repo",
+      "expect": "security-audit"
+    },
+    {
+      "prompt": "is this contribution a backdoor? it touches the CI workflow and adds a postinstall script",
+      "expect": "security-audit"
+    },
+    {
+      "prompt": "o que é SSRF?",
+      "expect": "security-audit"
+    },
+    {
+      "prompt": "simplifica esse arquivo sem mudar comportamento",
+      "expect": "simplify"
+    },
+    {
+      "prompt": "this function has three nested ternaries and a boolean flag argument, clean it up",
+      "expect": "simplify"
+    },
+    {
+      "prompt": "melhora a arquitetura desse módulo, tá tudo acoplado e difícil de testar",
+      "expect": "improve-codebase-architecture"
+    },
+    {
+      "prompt": "find refactoring opportunities where modules are shallow",
+      "expect": "improve-codebase-architecture"
+    },
+    {
+      "prompt": "como eu verifico que essa mudança de cache funciona de verdade?",
+      "expect": "verification-planning"
+    },
+    {
+      "prompt": "prove the fix for the race condition works before I merge",
+      "expect": "verification-planning"
+    },
+    {
+      "prompt": "abre uma lane isolada pra esse upgrade grande do React",
+      "expect": "worktrees"
+    },
+    {
+      "prompt": "run these three refactors in parallel on separate worktrees",
+      "expect": "worktrees"
+    },
+    {
+      "prompt": "mapeia esse repo, nunca vi esse código",
+      "expect": "codemap"
+    },
+    {
+      "prompt": "atualiza o codemap",
+      "expect": "codemap"
+    },
+    {
+      "prompt": "clona o source do fastify pra eu ver como o router funciona por dentro",
+      "expect": "clonedeps"
+    },
+    {
+      "prompt": "tira a cara de IA desse texto: 'In today's fast-paced world, it's not just about speed — it's about delivering value.'",
+      "expect": "humanizer"
+    },
+    {
+      "prompt": "isso parece IA? 'Vale ressaltar que, no cenário atual, a inovação é fundamental.'",
+      "expect": "humanizer"
+    },
+    {
+      "prompt": "checa os fatos desse artigo antes de eu publicar: drafts/post.md",
+      "expect": "fact-check"
+    },
+    {
+      "prompt": "verify the claims and sources in my essay before I post it",
+      "expect": "fact-check"
+    },
+    {
+      "prompt": "review my local diff for bugs",
+      "expect": "none"
+    },
+    {
+      "prompt": "write a CLAUDE.md for this project",
+      "expect": "none"
+    },
+    {
+      "prompt": "what is the latest version of lodash?",
+      "expect": "none"
+    },
+    {
+      "prompt": "upgrade our dependencies to the latest versions",
+      "expect": "none"
+    },
+    {
+      "prompt": "traduz esse parágrafo pro inglês",
+      "expect": "none"
+    },
+    {
+      "prompt": "design a test strategy for the whole payments service",
+      "expect": "none"
+    },
+    {
+      "prompt": "should we use Kafka or SQS for this?",
+      "expect": "none"
+    }
+  ]
+}

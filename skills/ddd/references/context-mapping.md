@@ -1,6 +1,6 @@
 # Context mapping — relationships between bounded contexts
 
-Sources: `[Evans Reference]`, `[Evans DDD part IV]`, `[IDDD ch.2,13]`,
+Sources: `[Evans Reference]`, `[Evans DDD part IV]`, `[IDDD ch.3,13]`,
 `[Distilled ch.4]`, `[prática pós-2020]`.
 
 A context map is not a network diagram — it names **who depends on whom and
@@ -17,13 +17,14 @@ under which pattern**. Draw it before integration code exists.
 | **Customer-Supplier** | upstream serves downstream's needs | upstream runs downstream's acceptance tests |
 | **Conformist** | downstream accepts upstream model as-is | no leverage over upstream; zero translation cost |
 | **ACL** | downstream translates defensively | protecting your model from a hostile/legacy upstream |
-| **OHS + Published Language** | upstream exposes a standard protocol/schema | many consumers; you define the exchange format |
+| **Open Host Service (OHS)** | upstream exposes a standard protocol for all consumers | many consumers; one protocol instead of a translator per consumer |
+| **Published Language** | documented exchange schema/language | you define and version the exchange format; usually paired with OHS |
 | **Separate Ways** | no integration | integration cost exceeds value |
 | **Big Ball of Mud** | model in decay | recognize and fence it; do not "fix" it opportunistically |
-| **Core Domain** | the relationship center | invest here; everything else serves it |
 
 Practical reading: every arrow on the map gets one of these labels, plus
-direction (upstream → downstream) and a data/protocol note.
+direction (upstream → downstream) and a data/protocol note. Core Domain is a
+distillation concept, not a relationship — see `strategic-design.md`.
 
 ## Anti-Corruption Layer (ACL)
 

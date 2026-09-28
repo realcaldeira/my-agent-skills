@@ -2,16 +2,21 @@
 
 Output language: pt-BR. Two variants — **choose at the start and say which**:
 
-- **Enxuta (this page)** — 1–2 contexts, small team, "is DDD worth it here?"
-  or executive communication. **Default when in doubt.**
-- **Completa (12 seções)** — multi-module ERP, compliance, multi-month
-  reference document. Use this same template plus one appendix per module,
-  with a bounded-context canvas per target context.
+- **Enxuta** — 1–2 contexts, small team, "is DDD worth it here?" or
+  executive communication. Sections 1, 2, 3, 5, 10 and 11 required; the rest
+  filled or marked "n/a" in one line. **Default when in doubt.**
+- **Completa** — multi-module ERP, compliance, multi-month reference
+  document. All 12 sections, plus one appendix and one bounded-context canvas
+  per target context.
+
+For section 8, apply `aggregate-design.md` (Rule 4, reasons to break the
+rules); do not name internal skill files in the output.
 
 ```markdown
 # Spec de conversão DDD — <projeto>
 
 **Variante:** <enxuta | completa> — **Decisão inicial:** <vale DDD aqui? sim/parcial/não + 1 frase>
+**Premissas:** <o que foi assumido sem confirmação, ou "nenhuma">
 
 ## 1. Contexto atual (as-is)
 - Domínio e problema em 1 parágrafo
@@ -32,12 +37,19 @@ Output language: pt-BR. Two variants — **choose at the start and say which**:
 ## 5. Migração — faseamento
 ### Fase 0 — Entender (<tempo>)
 <event storming, mapa, decisões>
+- Critério de saída: <...>
+- Ponto de rollback: <...>
 ### Fase 1 — Bubble piloto (<tempo>)
 <escopo, contexto, ACL, entregável>
+- Critério de saída: <...>
+- Ponto de rollback: <...>
 ### Fase 2..N — Expandir/estrangular
 <...>
+- Critério de saída: <...>
+- Ponto de rollback: <...>
 ### Fase final — Descomissionar
-<critérios>
+- Critério de saída: <nenhum consumidor restante, arquivo de dados legível>
+- Ponto de rollback: <...>
 
 ## 6. Dados
 - Ownership por contexto
@@ -45,10 +57,10 @@ Output language: pt-BR. Two variants — **choose at the start and say which**:
 - Reconciliação e métricas de drift
 
 ## 7. Estilo arquitetural e restrições técnicas
-<modular monolith, hexagonal por módulo; IDs (ULID/UUID), outbox, versionamento de eventos>
+<modular monolith, hexagonal por módulo; IDs (UUIDv7/ULID), outbox, versionamento de eventos>
 
 ## 8. Camada de aplicação dos contextos novos
-<command handlers, sagas/process managers onde houver consistência eventual — ver aggregate-design.md>
+<command handlers, sagas/process managers onde houver consistência eventual>
 
 ## 9. Testes e aceitação
 <Cenários Given-When-Then por aggregate crítico>

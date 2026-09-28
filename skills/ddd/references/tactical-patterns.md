@@ -73,7 +73,8 @@ huge payloads; events published before commit; "event" classes with setters.
 ## Specification
 
 Predicate object with `isSatisfiedBy(candidate)`, composable via
-`and`/`or`/`not`. Three uses `[Evans DDD ch.10]`:
+`and`/`or`/`not`. Three uses `[Evans DDD ch.9]`; combining with logical
+operators `[Evans DDD ch.10]`:
 
 1. **Validation** — `EligibleForDiscount.isSatisfiedBy(order)`.
 2. **Selection** — query-side filtering expressed in the language.
@@ -84,13 +85,14 @@ ubiquitous language. Overkill for a one-line `if`.
 
 ## Identity generation
 
-Options `[IDDD ch.5]`: user-provided, application-generated (UUID/ULID),
-persistence-generated (auto-increment), or value-derived (hash).
+Options `[IDDD ch.5]`: user-provided, application-generated,
+persistence-generated (e.g. auto-increment/sequence), or assigned by another
+bounded context.
 
-**Modern default:** generate in the application — UUID v4 or ULID. ULID's
-timestamp prefix gives natural ordering and index-friendly inserts.
-Persistence-generated IDs couple identity to a database and complicate
-multi-store or distributed setups. `[prática pós-2020]`
+**Modern default:** generate in the application — UUIDv7 (RFC 9562) or ULID
+when time-ordering and index locality matter; random UUIDv4 when creation
+time must not leak. Persistence-generated IDs couple identity to a database
+and complicate multi-store or distributed setups. `[prática pós-2020]`
 
 ## Module
 

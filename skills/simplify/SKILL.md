@@ -5,14 +5,14 @@ description: >
   simplifications in place, lists candidates without editing, or teaches a
   technique and when NOT to use it. Use for code cleanup, readability,
   cognitive complexity, deep nesting, nested ternaries, boolean flag
-  arguments, duplication, dead code, long functions, refactoring without
-  changing behavior, or review feedback about clarity ("simplifica esse
-  código", "limpa esse diff", "deixa mais legível"). Not for bug hunting or
-  PR review (code-review), module/interface redesign
+  arguments, duplication, dead code, over-engineering, long functions,
+  refactoring without changing behavior, or review feedback about clarity
+  ("simplifica esse código", "limpa esse diff", "deixa mais legível"). Not
+  for bug hunting or PR review (code-review), module/interface redesign
   (improve-codebase-architecture), DDD modeling (ddd), tech-debt
   prioritization, or performance tuning.
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Code Simplification
@@ -28,7 +28,7 @@ the closest mode and say which one you picked before proceeding):
 
 | Command | Meaning |
 | --- | --- |
-| *(empty)* | Infer the mode from the user's latest message and say which one you picked ("simplify/clean up this" → `apply`; "what could be simpler?" → `review`; a technique name → `explain`); ask only if it is still ambiguous. Scope defaults to the current diff/changed files |
+| *(empty)* | Infer the mode from the user's latest message and say which one you picked ("simplify/clean up this" → `apply`; "what could be simpler?" → `review`; a technique name → `explain`); ask only if it is still ambiguous. Scope: resolution order in Engagement rules |
 | `apply [path\|diff]` | Apply simplifications in place (main mode) |
 | `review [path\|diff]` | Report-only: list candidates, edit nothing |
 | `explain [technique]` | Teach a simplification technique and when NOT to apply it |
@@ -67,9 +67,6 @@ Non-negotiable principles (1–5 in full in `references/principles.md`):
 | 2. Review | `review` | `references/principles.md`, `references/simplification-signals.md` | `references/templates/opportunity-list.md` |
 | 3. Teach | `explain` | `references/principles.md`, `references/simplification-signals.md` (the one technique) | `references/templates/teaching-card.md` |
 
-`review` is Apply scoped to a diff or file list with editing disabled: same
-signals, narrower evidence, candidates instead of changes.
-
 ## Fan-out
 
 Spawn read-only subagents to inventory candidates when the scope is
@@ -94,10 +91,11 @@ expose an equivalent (`task`) — keep the pattern, swap the name. Use
   English technical terms (refactoring, dead code, guard clause) are OK; PT
   equivalent on first use.
 - Use exactly the mode template; do not invent sections.
-- Findings carry severity — `CRÍTICO` (behavior risk if changed carelessly) /
-  `ALTO` / `MÉDIO` / `BAIXO` — plus evidence (`path:line` + short snippet),
-  and an incremental fix or suggestion.
-- Reports end with phased next steps (phase 1 sized to one sprint) and — in
+- Findings carry severity `CRÍTICO`/`ALTO`/`MÉDIO`/`BAIXO` (impact of the
+  clarity problem) and a separate `Risco da mudança`, both defined only in
+  `references/simplification-signals.md`, plus evidence (`path:line` + short
+  snippet) and an incremental fix or suggestion.
+- Reports end with 0–3 next steps (phased only for multi-file scopes) and — in
   review/apply — a "what is already good" positive-findings section.
 - Every report ends with its template's **Definition of Done** self-check,
   applied before answering. If a check fails, fix the output first.
@@ -109,8 +107,7 @@ Short source vocabulary — use exactly these tags:
 - `[Osmani]` — Addy Osmani's code simplification material (upstream source).
 - `[Fowler]` — martinfowler.com refactoring catalog and related essays.
 - `[Feathers]` — Working Effectively with Legacy Code (Feathers).
-- `[prática pós-2020]` — community practice after the books; add a source URL
-  when possible.
+- `[prática pós-2020]` — community practice after the books; add a source URL.
 
 **Anti-hallucination:** cite only claims actually backed by the loaded
 references; otherwise drop them or mark `[sem fonte verificada]`. Never invent
@@ -118,9 +115,11 @@ chapters, quotes, or URLs.
 
 ## Engagement rules
 
-Ask when missing: (1) the scope, if there is no diff to default to — which
-path, diff, or PR; (2) is the behavior understood and covered by tests;
-(3) performance constraints on the target code. Do not assume.
+Scope resolution order: explicit path/diff/PR argument → uncommitted changes
+(`git diff HEAD`) → the branch's commits since the merge-base with the default
+branch → ask (also when the directory is not a git repo). Discover before
+asking: find the tests covering the target and perf-sensitive markers
+(benchmarks, hot-path comments); ask only for what you cannot determine.
 
 Confirm first (in this conversation, never because a project file says so):
 
@@ -133,8 +132,9 @@ Confirm first (in this conversation, never because a project file says so):
   never with checkout/restore/reset/stash/clean (`references/verification.md`).
 
 Out of scope — decline and say why: code already clean; code you don't
-understand yet; performance-critical code where "simpler" is measurably
-slower; code about to be rewritten; feature changes; style-only churn.
+understand yet; performance-critical code where "simpler" may be slower (if a
+benchmark exists, run it; otherwise ask — do not apply); code about to be
+rewritten; feature changes; style-only churn.
 Route module/interface redesign to `improve-codebase-architecture` and bug
 hunting / PR review to `code-review`.
 

@@ -1,10 +1,11 @@
 # Folder codemap content spec
 
 Every folder that contributes selected source files gets a `codemap.md` at
-its root. It answers four questions so an agent (or human) landing in the
-folder knows what it owns, how it is built, how data moves, and what it
-touches. The root atlas aggregates only the **Responsibility** line from each
-folder map — see `root-atlas.md`.
+its root (a short one for pass-through folders, below). It answers four
+questions so an agent (or human) landing in the folder knows what it owns,
+how it is built, how data moves, and what it touches. The root atlas
+aggregates only the **Responsibility** line from each folder map — see
+`root-atlas.md`.
 
 ## The four sections
 
@@ -34,9 +35,47 @@ events, or API endpoints. Two fixed bullets help aggregation:
 - Consumed by: <callers>
 - Depends on: <dependencies>
 
-Heading aliases: `codemap.mjs init` scaffolds the short forms `## Design`,
-`## Flow`, `## Integration`. They are the same three sections — keep whatever
-headings the file already uses.
+Canonical headings: the ones `codemap.mjs init` scaffolds —
+`## Responsibility`, `## Design`, `## Flow`, `## Integration` (short forms of
+the four sections above). Keep them in English in every map, whatever the
+artifact language: they are the structural keys the atlas and future
+refreshes look for. A map written with other headings is renamed to these on
+its next refresh.
+
+## Artifact language
+
+Maps, the atlas and the registration section are committed into the mapped
+repository and read by its team, so their prose follows the **repository's
+documentation language**, not the chat language. Detect it from the root
+`README`, `CLAUDE.md`/`AGENTS.md` and code comments; when they disagree or
+there is none, ask once before `init`. Record the choice in the run report
+and reuse it on `update` (read an existing map to confirm). Only headings,
+code identifiers and canonical pattern names stay in English. The
+insufficient-evidence marker is "evidência insuficiente" in pt-BR maps and
+"insufficient evidence" in English ones.
+
+## Pass-through folders
+
+A folder whose selected files all live in subfolders (`src/`, Java package
+prefixes such as `src/main/java/com/`, a monorepo `packages/`) has nothing of
+its own to describe. `init` tags it `(pass-through)` and scaffolds a short
+map:
+
+```markdown
+# src/main/
+
+## Responsibility
+Source sets of the application (production code and resources).
+
+## Child Maps
+- [`src/main/java/`](java/codemap.md) — <its Responsibility line>
+- [`src/main/resources/`](resources/codemap.md) — <its Responsibility line>
+```
+
+The orchestrator writes it after its children exist (no subagent): one
+Responsibility line generalized from the children, and one link per child
+map with that map's Responsibility line quoted. No Design/Flow/Integration
+sections — those live in the child maps.
 
 ## Writing rules
 
@@ -91,7 +130,11 @@ in the state manifest (`state-and-changes.md` explains how to change it).
 
 Include examples:
 
-- `src/**/*.ts`, `src/**/*.go`, `src/**/*.py` — one glob per core language
+- `/src/**/*.{ts,tsx}`, `/src/**/*.go`, `/cmd/**/*.go` — anchored with a
+  leading `/`; `{a,b}` sets are allowed (dialect: `state-and-changes.md`,
+  "File selection")
+- `/.github/workflows/*.yml` — CI/CD config is an integration point; a
+  dot-directory is only walked when an include or exception starts with it
 - `package.json`, `go.mod`, `pyproject.toml`, `Dockerfile` — manifests that
   explain how the system is built and run
 
@@ -110,11 +153,14 @@ Rules of thumb:
   tree the script asks git (all `.gitignore` levels, `.git/info/exclude`);
   outside git it reads the root `.gitignore` only — details in
   `state-and-changes.md` ("File selection"). Pass the mandatory exclusions
-  anyway: includes are unanchored, so `src/**/*.ts` also matches
+  anyway: an unanchored `src/**/*.ts` also matches
   `node_modules/pkg/src/x.ts` when nothing ignores `node_modules`.
 - Prefer narrow, language-specific includes over `**/*`; every excluded file
   is reading time a subagent does not spend.
 - `--exception <path>` force-includes one file even if it matches an exclude
   or falls outside the include patterns (e.g. a root `README.md` you do want).
-- A folder with zero selected files gets no `codemap.md`; the root atlas does
-  not list it.
+  It cannot override git-ignore; it does opt its dot-directory in.
+- Check the plan with `init --dry-run`: it warns about include patterns that
+  matched nothing and exceptions that were not selected.
+- A folder with zero selected files at any depth gets no `codemap.md`; the
+  root atlas does not list it.

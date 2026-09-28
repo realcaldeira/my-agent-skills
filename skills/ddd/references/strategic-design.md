@@ -46,11 +46,13 @@ Yes → core. Classification is strategic, not technical — revisit yearly.
 
 ## Domain vision statement
 
-One paragraph: what this system does for the market, which core domain it
-serves, and what makes it different. Written early, revised when strategy
-changes. `[Evans Reference]`
+Evans: a short description (about one page) of the core domain and the
+value it will bring — its value proposition. Written early, revised as
+insight grows. `[Evans Reference]` The strategic-plan template uses a
+condensed one-paragraph version.
 
-Template: *For [target customer], [system] is the [category] that [key
+Optional opener, borrowed from product-positioning statements (not Evans's
+form): *For [target customer], [system] is the [category] that [key
 capability]. Unlike [alternative], it [differentiator].*
 
 ## Distillation
@@ -72,14 +74,23 @@ capability]. Unlike [alternative], it [differentiator].*
   is usually a small kernel (pricing rule, matching engine, risk scoring).
   Find it before modeling peripheral workflows deeply.
 
-## Discovery order (DDD Crew starter process) `[DDD Crew]`
+## Suggested order (adapted from the DDD Crew Starter Modelling Process) `[DDD Crew]`
 
-1. **Big picture event storming** — discover the domain and its events.
-2. **Domain message flow** — commands and events between candidate contexts.
-3. **Bounded context canvas** — one page per candidate context.
-4. **Context map** — relationships and integration patterns.
-5. **Design-level event storming** — per context, before implementation.
-6. **ADRs + implementation** — record the decisions.
+The process has eight steps, iterated rather than run once:
+
+1. **Understand** — business model, users, goals.
+2. **Discover** — Big Picture event storming.
+3. **Decompose** — split into subdomains / candidate contexts.
+4. **Strategize** — classify core/supporting/generic (e.g. Core Domain Charts).
+5. **Connect** — domain message flow between candidate contexts; context map.
+6. **Organise** — align teams to contexts (team composition itself is out of
+   scope for this skill).
+7. **Define** — one Bounded Context Canvas per context.
+8. **Code** — Software Design event storming, Aggregate Design Canvas, then
+   implementation.
+
+Recording decisions as ADRs along the way is this skill's addition, not a
+DDD Crew step. `[prática pós-2020]`
 
 Workshop logistics are in `event-storming.md`; relationship patterns in
 `context-mapping.md`.

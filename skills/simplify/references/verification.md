@@ -3,7 +3,7 @@
 Step 3 (apply incrementally) and Step 4 (verify the result). Loaded only for
 Apply mode — Review edits nothing and Teaches nothing about process, so they
 do not read this file. The parity questions that gate *each individual change*
-live in `principles.md`.
+(questions 1–3 before it, question 4 after it) live in `principles.md` §1.
 
 ---
 
@@ -18,6 +18,24 @@ planned candidates one per line and ask the user before editing. Past ~500
 lines, propose automation (codemod, AST transform, scripted replace) instead
 of hand edits [Osmani]. Small scopes proceed without asking.
 
+**High-risk candidates.** A candidate with `Risco da mudança: ALTO`
+(`simplification-signals.md`, Severity and change risk) is report-only unless
+the user confirms it in this conversation. A public-interface candidate
+follows its own rule (`principles.md` §1). A candidate that would violate
+Principle 1 is never applied.
+
+**No test oracle.** When no tests cover the target (understand-first
+question 4), question 4 cannot be answered. Then:
+
+1. Apply only transforms whose parity is locally provable: local rename,
+   deleting provably unreachable code, extracting a named intermediate
+   without reordering evaluation.
+2. For anything else, offer to write characterization tests first — tests
+   that pin the current behavior, bugs included — and write them only with
+   the user's OK [Feathers].
+3. Otherwise leave those candidates unapplied and list them in the report
+   marked `sem oráculo de teste`.
+
 For each simplification:
 
 1. **Make the change** — one candidate, one small, self-contained edit.
@@ -26,9 +44,10 @@ For each simplification:
    outside the user's team, confirm, and run only in an isolated environment
    (container/VM without the user's home, SSH agent or tokens); otherwise
    stay in `review` (router's engagement rules).
-3. **Keep it only if behavior is preserved** — apply the four parity
-   questions (`principles.md`). If a question fails, revert *that* change
-   (revert discipline below), note why in the report, and move on. A reverted
+3. **Keep it only if behavior is preserved** — questions 1–3 were answered
+   before the edit; now answer question 4 with the test run
+   (`principles.md` §1). If it fails, revert *that* change (revert
+   discipline below), note why in the report, and move on. A reverted
    attempt is a valid report entry.
 
 Separate refactoring from feature work whenever possible. If the task mixes
@@ -61,9 +80,14 @@ After simplifying, confirm:
 
 Run every item before declaring the task done. A failed item is not optional.
 
-- [ ] Existing tests pass **without modification** — tests edited to match
-      new code mean behavior changed. Stop and revert your own edits
-      (revert discipline above — never a git reset/restore of the files).
+- [ ] Existing tests pass with **no change to assertions, expected values,
+      fixtures, or snapshots**. Mechanical reference updates (renamed
+      identifiers, call sites, imports, mock targets) are allowed and listed
+      in the report; any other test edit means behavior changed — stop and
+      revert your own edits (revert discipline above — never a git
+      reset/restore of the files).
+- [ ] With no covering tests, only locally provable transforms were applied
+      (no-test-oracle branch above).
 - [ ] Build / typecheck / lint still pass.
 - [ ] No unrelated files were refactored — the diff touches only the scoped
       code (principle 5).
@@ -88,6 +112,8 @@ Run every item before declaring the task done. A failed item is not optional.
   the "Rule of 500" (automate refactors that touch more than 500 lines). The
   ~10-candidate threshold and the revert discipline are this skill's own
   operating rules.
-- `[Feathers]` — tests as the behavior oracle for legacy edits; "without
-  modification" as the parity signal.
+- `[Feathers]` — tests as the behavior oracle for legacy edits; unchanged
+  assertions as the parity signal; characterization tests for untested code.
+- The high-risk gate and the no-test-oracle branch are this skill's own
+  operating rules.
 - `[Fowler]` — one refactoring at a time; revertable, reviewable diffs.

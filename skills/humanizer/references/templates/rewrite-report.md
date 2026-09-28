@@ -1,7 +1,9 @@
-# Template — Relatório de reescrita (`rewrite`, modo texto colado)
+# Template — Rewrite report (`rewrite`, pasted-text mode)
 
-Meta-comentários em pt-BR. O texto reescrito fica no idioma do texto de
-origem — nunca traduza. Substitua todos os marcadores `<…>`; apague nada.
+Output language: pt-BR for the meta commentary. The rewritten text stays in the
+language of the source text; never translate it. Replace every `<…>`
+placeholder; delete nothing. Strength labels come from the tiers in
+`references/voice-and-guardrails.md`.
 
 ```markdown
 # Relatório de reescrita — <título ou primeiras palavras do texto>
@@ -10,7 +12,7 @@ origem — nunca traduza. Substitua todos os marcadores `<…>`; apague nada.
 
 | # | Padrão | Trecho | Força |
 | --- | --- | --- | --- |
-| <n> | <nome do padrão, em inglês> | `<trecho exato>` | forte (1–5) ou fraca sozinha (8, 9, 10, 11, 21) |
+| <n> | <nome do padrão, em inglês> | `<trecho exato>` | <forte · padrão · fraca sozinha> |
 
 ## Rascunho
 
@@ -19,6 +21,7 @@ origem — nunca traduza. Substitua todos os marcadores `<…>`; apague nada.
 ## Padrões remanescentes
 
 - <padrão ainda perceptível no rascunho + onde + o que falta resolver>
+- <detalhe que faltou na fonte: pergunta ao autor + frase mais simples usada no lugar; omitir se não houver>
 
 ## Reescrita final
 
@@ -28,15 +31,16 @@ origem — nunca traduza. Substitua todos os marcadores `<…>`; apague nada.
 
 - [ ] Todo trecho marcado foi resolvido na versão final ou justificado.
 - [ ] Nenhum fato, nome, número, data, citação ou referência foi inventado ou perdido.
-- [ ] Os cinco sobreviventes foram revistos após o rascunho: not-X-but-Y, fecho de uma linha, travessão, tríade forçada, rótulo em negrito.
-- [ ] A versão final está no idioma do texto de origem; a voz foi preservada (regras de `references/voice-and-guardrails.md`).
-- [ ] Frases de comprimentos variados; meta-comentários em pt-BR.
+- [ ] Os cinco sobreviventes (`references/voice-and-guardrails.md`) foram revistos após o rascunho.
+- [ ] A versão final está no idioma do texto de origem, com a ortografia e a pontuação desse idioma; a voz foi preservada.
+- [ ] Frases de comprimentos variados; metacomentários em pt-BR.
 ```
 
 ## Definition of Done
 
 - [ ] All four sections present, in this order: marcas, rascunho, restantes, final.
-- [ ] Every tell row carries a real quote from the text and a real pattern number (1–25).
+- [ ] Every tell row carries a real quote from the text, a real pattern number (1–25), and that pattern's tier label.
 - [ ] Draft and final are the full text, not excerpts, and stay in the source language.
 - [ ] Fact audit was run: no added or dropped claims (shape edits under 6, 9, 19 checked first).
+- [ ] Where a detail was missing, the simpler sentence was used and the missing detail is listed as a question under Padrões remanescentes.
 - [ ] DoD block inside the report is completed before answering.

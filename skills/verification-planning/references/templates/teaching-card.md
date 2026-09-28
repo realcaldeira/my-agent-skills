@@ -2,12 +2,13 @@
 
 Output language: pt-BR. Canonical terms stay in English with the Portuguese
 equivalent on first use. One card per concept: evidence path, verification
-affordance, or verification budget (`references/evidence-path.md`).
+affordance, verification budget, or research when unknown
+(`references/evidence-path.md`, via the router's concept lookup).
 
 ```markdown
-## <Conceito — evidence path | verification affordance | verification budget>
+## <Conceito — evidence path | verification affordance | verification budget | research when unknown>
 
-**Definição:** <paráfrase fiel da referência deste skill + citação, ex. `[sistema sob análise]`>
+**Definição:** <paráfrase fiel da referência deste skill + `[referência do skill]`>
 
 **Por que importa:** <o problema que resolve — 2–3 frases>
 
@@ -18,7 +19,7 @@ affordance, or verification budget (`references/evidence-path.md`).
 - <bullets>
 
 **Exemplo agnóstico:**
-<pseudocódigo ou cenário curto, sem framework>
+<cenário curto, sem framework — adaptado do trecho relevante de `references/worked-example.md`>
 
 **Relaciona-se com:** <outros conceitos deste skill — links para `references/evidence-path.md`>
 
@@ -29,10 +30,12 @@ affordance, or verification budget (`references/evidence-path.md`).
 
 ## Definition of Done
 
-- [ ] Definition is paraphrased from `references/evidence-path.md`; no
-      invented quotes, sources, or external authorities.
+- [ ] Definition is paraphrased from `references/evidence-path.md` and tagged
+      `[referência do skill]`; no invented quotes, sources, or external
+      authorities.
 - [ ] "Quando NÃO usar" is present and concrete (e.g. small mechanical change
       → ordinary project checks; affordance ≠ automatic product feature).
-- [ ] Example is short and stack-agnostic (no Spring/EF/Django).
+- [ ] Example is short, stack-agnostic (no Spring/EF/Django), and taken from
+      the worked example rather than invented.
 - [ ] Answer is direct — the concept first, no preamble.
 - [ ] Output in pt-BR.

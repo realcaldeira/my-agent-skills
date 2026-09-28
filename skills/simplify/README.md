@@ -13,9 +13,9 @@ Not for bug hunting or PR review (`code-review`), module/interface redesign
 
 ```
 SKILL.md                    # router: input, mission, modes, fan-out, rules
-references/principles.md    # the five principles, parity questions, out of scope
-references/simplification-signals.md  # understand-first questions + 9 signals
-references/verification.md  # apply loop, size gate, revert discipline, checklist
+references/principles.md    # the five principles, parity gates, public-interface rule
+references/simplification-signals.md  # understand-first questions, 11 signals, severity + change risk
+references/verification.md  # apply loop, size/risk gates, no-test branch, revert, checklist
 references/templates/*.md   # one output template per mode, each with a DoD
 ```
 
@@ -52,7 +52,8 @@ templates). See [`NOTICE.md`](NOTICE.md) for sources and license text.
 
 - **File edits:** only in `apply` mode, on the scoped code. Scopes of more
   than ~10 candidates or ~500 touched lines are listed first and need the
-  user's OK. `review` and `explain` are read-only.
+  user's OK. Candidates with high change risk or on a public interface are
+  applied only after confirmation. `review` and `explain` are read-only.
 - **Running code:** `apply` runs the project's tests, build, typecheck, and
   lint. On a PR from an author outside the user's team this executes
   untrusted code, so it happens only after explicit confirmation and in an

@@ -11,7 +11,7 @@ description: >
   management, vendoring or patching code into the build, or running a
   dependency's builds and tests.
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Clonedeps
@@ -28,7 +28,7 @@ Parse the input before doing anything. Valid commands:
 | --- | --- |
 | *(empty)* | Infer the mode from the user's latest message and say which one you picked (wants to read or understand a library's internals → `plan`); ask only if it is still ambiguous |
 | `plan [dep names]` | Research and propose what to clone (0–3 strong picks) — read-only |
-| `sync` | Clone what the approved plan/manifest lists (network; requires user confirmation) |
+| `sync [dep names]` | Clone what the manifest or approved plan lists, or only the named entries (network; requires user confirmation) |
 | `status` | Show manifest vs disk state |
 | `cleanup` | Preview, confirm, then delete clones; drop the ignore block last (ask separately for the manifest and the registered section) |
 | `explain [concept]` | Teach a cloning/workspace concept, including when NOT to clone |
@@ -49,8 +49,8 @@ Non-negotiable principles:
 
 1. **Manifest first.** Read `.agent/clonedeps.json` and reuse existing clones
    before re-planning anything.
-2. **0–3 strong picks.** Never a dependency dump; most dependencies are not
-   worth cloning. Zero is a valid plan.
+2. **0–3 strong picks.** Never a dependency dump; zero is a valid plan. The
+   cap binds your picks, never deps the user named (`references/clone-plan.md`).
 3. **Pinned refs, safe URLs.** Tags checked by full refname, full SHAs only
    after fetch; HTTPS-only via the hardened git prefix (credential helpers
    off); reject `file://`, SSH, local-path, credentialed, and private repos
@@ -75,18 +75,17 @@ Non-negotiable principles:
 | 2. Sync | `sync` | `references/git-safety.md`, `references/manifest-and-ignore.md` | `references/templates/manifest.md` |
 | 3. Status | `status` | `references/manifest-and-ignore.md` | `references/templates/manifest.md` |
 | 4. Cleanup | `cleanup` | `references/manifest-and-ignore.md` | `references/templates/manifest.md` |
-| 5. Teaching | `explain` | `references/clone-plan.md` | `references/templates/teaching-card.md` |
+| 5. Teaching | `explain` | Only the owner of the concept: selection, source vs docs → `references/clone-plan.md`; refs, URLs, clone safety, instruction files → `references/git-safety.md`; manifest, layout, ignore, registration, status, cleanup → `references/manifest-and-ignore.md` | `references/templates/teaching-card.md` |
 
 ## Fan-out
 
-A research subagent may draft the clone plan. Hand it the research prompt in
-`references/clone-plan.md` (understand the project first, source-beats-docs
-picks only, untrusted data, no network unless approved, cite versions and
-URLs) and consolidate the answer yourself; never accept a dependency dump.
+Only in `plan`, when you must discover which deps matter in a sizable repo:
+a research subagent drafts the plan from the research prompt in
+`references/clone-plan.md` (pass it the user-named deps); you consolidate.
 
-Do NOT fan out for: `status`, `cleanup`, `explain`, or the clone execution
-itself — cloning is sequential and every network step needs user
-confirmation.
+Do NOT fan out when the user already named the deps, for small repos (< 20
+relevant files), or for `sync`, `status`, `cleanup`, `explain` — cloning is
+sequential and every network step needs user confirmation.
 
 Harness note: Claude Code `Agent` tool (formerly `Task`); other harnesses
 expose an equivalent (`task`) — keep the pattern, swap the name.
@@ -108,8 +107,8 @@ Short source vocabulary — use exactly these tags:
 - `[git ls-remote]` — actual output of a tag lookup
 - `[git fetch]` / `[git rev-parse]` — actual output of a fetch, commit check,
   or SHA reachability check
-- `[repo file]` — `path:line` in the current project (lockfile entry,
-  installed package metadata)
+- `[repo file]` — `path:line` in the project or an installed package copy
+  (lockfile entry, installed package metadata, module cache)
 - `[manifest]` — an entry from `.agent/clonedeps.json`
 - `[repo docs]` — official repository documentation (web lookup, principle 4)
 
@@ -127,11 +126,11 @@ support.
 2. `sync` is the apply mode: confirming it covers the `.gitignore` block,
    the manifest, and the registered section (canonical agent-instruction
    file, resolved in `references/manifest-and-ignore.md`). Ask separately
-   before creating an instruction file or applying a sparse-checkout /
-   `claudeMdExcludes` mitigation.
-3. `cleanup` deletes: run status, show the exact directories (orphans and
-   dirty clones flagged), delete only after explicit confirmation, and
-   remove the ignore block only after the directories are gone.
+   before creating an instruction file, a sparse-checkout /
+   `claudeMdExcludes` mitigation, a `.ignore` allowlist, or a
+   test-runner/linter exclusion.
+3. `cleanup` deletes only the directories the user confirmed from the
+   preview; the ignore block goes after them.
 4. Prefer reversible steps: temp-then-move clones, managed ignore blocks,
    idempotent cleanup.
 
@@ -142,9 +141,10 @@ support.
 2. Load only that mode's references.
 3. **plan** — read the manifest first and reuse; research; propose 0–3
    picks; confirm the plan with the user.
-4. **sync** — network OK → `.gitignore` block → verify refs → fetch each
-   repo into `.tmp-<owner>__<repo>`, check the commit, list agent-instruction
-   files → move → write the manifest → register in the instruction file.
+4. **sync** — source: the manifest's entries (no re-planning) plus any plan
+   approved in this conversation; neither → say so and switch to `plan`.
+   Then network OK → safe clone pattern (`references/git-safety.md`) →
+   manifest (with `commit`) → register in the instruction file.
 5. **cleanup** — status → preview → confirm → delete → drop ignore block.
 6. Deliver using the mode template with evidence excerpts.
 7. Run the template's Definition of Done; fix failures before answering.

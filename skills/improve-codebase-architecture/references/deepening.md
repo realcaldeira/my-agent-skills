@@ -1,9 +1,11 @@
 # Deepening — safely merging shallow modules given their dependencies
 
-How to deepen a cluster of shallow modules. Assumes `vocabulary.md` —
-**module**, **interface**, **seam**, **adapter**, **depth**.
+How to deepen a cluster of shallow modules — whether the candidate is a
+pass-through to merge/inline or a shallow owner to deepen in place
+(`friction-signals.md` §Applying the deletion test). Assumes `vocabulary.md`
+— **module**, **interface**, **seam**, **adapter**, **depth**.
 
-Sources: `[Ousterhout]`, `[Feathers]`, `[prática pós-2020]`.
+Sources: `[prática pós-2020]`.
 
 ---
 
@@ -13,7 +15,13 @@ Once the user picks a candidate, drop into an interactive grilling
 conversation. Walk the design tree together — constraints, dependencies, the
 shape of the deepened module, what sits behind the seam, what tests survive.
 Do not hand over a plan on the first turn; probe, restate the trade-off, let
-decisions crystallize.
+decisions crystallize. Ask at most 2–4 questions per turn, each with your
+recommended answer.
+
+The loop ends when every section of `templates/deepening-plan.md` has a user
+decision, or as soon as the user asks for the plan ("só me dá o plano").
+Fill any undecided field with your recommended default, marked
+`em aberto — assumido: …`.
 
 Side effects (naming a term in the project's glossary, offering an ADR) are
 handled inline as decisions crystallize — see `domain-context-and-adrs.md`.
@@ -59,14 +67,9 @@ mock adapter.
 
 ## Seam discipline
 
-- **One adapter means a hypothetical seam. Two adapters means a real one.**
-  Don't introduce a port unless at least two adapters are justified (typically
-  production + test). A single-adapter seam is just indirection.
-  `[prática pós-2020]`
-- **Internal seams vs external seams.** A deep module can have internal seams
-  (private to its implementation, used by its own tests) as well as the
-  external seam at its interface. Don't expose internal seams through the
-  interface just because tests use them. `[Ousterhout]`
+Apply the two-adapters rule and the internal-vs-external seam principle from
+`vocabulary.md` §Principles. In deepening, the two adapters that justify a
+port are typically production + test; with only one, leave the seam out.
 
 ## Testing strategy: replace, don't layer
 
@@ -79,13 +82,12 @@ mock adapter.
   state.
 - Tests should survive internal refactors — they describe behaviour, not
   implementation. If a test has to change when the implementation changes,
-  it's testing past the interface. `[Feathers]`
+  it's testing past the interface. `[prática pós-2020]`
 
 ## DDD flavor of ports & adapters — owned by the `ddd` skill
 
 The discipline above (dependency categories, the two-adapters rule,
 replace-don't-layer) is all this skill owns. The DDD flavor — domain defines
-ports, DIP direction, the "JpaPort" smell — is owned by the `ddd` skill's
-[`architecture-styles.md`](../../ddd/references/architecture-styles.md);
-load that skill when the conversation turns to domain-vs-infrastructure
-layering.
+ports, DIP direction, the "JpaPort" smell — is owned by the `ddd` skill
+(its architecture-styles reference, if installed); load that skill
+when the conversation turns to domain-vs-infrastructure layering.

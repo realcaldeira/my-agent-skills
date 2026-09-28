@@ -25,7 +25,7 @@ ignore blocks → agent-instruction file registration, plus cleanup) moved into
 `references/`. Named-agent coupling in the source is depersonalized to
 "research subagent"; workspace paths were re-namespaced to `.agent/clonedeps/`;
 ignore markers renamed to `agent-skills clonedeps`; the harness-specific
-ignore-allowlist became an optional extra. The source's `codemap.md`
+ignore-allowlist became an optional root `.ignore` block. The source's `codemap.md`
 (packaging manifest) was dropped. Sources and licenses: [NOTICE.md](NOTICE.md).
 
 ## Layout
@@ -66,11 +66,15 @@ cloned file says so:
   `.agent/clonedeps/repos/`, the `.gitignore` marker block (written before
   the first clone), `.agent/clonedeps.json`, and a section in the canonical
   agent-instruction file (`CLAUDE.md`/`AGENTS.md`; asks before creating one).
-  Optional, asked separately: a sparse-checkout inside a clone or a
-  `claudeMdExcludes` entry in `.claude/settings.local.json`.
+  Optional, asked separately: a sparse-checkout inside a clone, a
+  `claudeMdExcludes` entry in `.claude/settings.local.json`, a root
+  `.ignore` allowlist so ripgrep-based search sees the clones, or an
+  `.agent/` exclusion in the project's vitest/jest/eslint config (those
+  tools do not honor `.gitignore` and would otherwise run or lint the
+  clones' own tests and sources).
 - **Deletion** (`cleanup`): shows the exact directories, flags orphans and
   dirty clones, deletes only after confirmation; asks separately before
-  removing the manifest or the registered section.
+  removing the manifest, the registered section, or a tooling exclusion.
 - **Git mutations:** only inside the clones; never commits or touches the
   project's history.
 - **Running code:** never — clones are untrusted data, read only; their

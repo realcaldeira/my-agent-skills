@@ -15,7 +15,9 @@ that exact operation, not a blanket "may I work on this repo":
 - `git worktree add`, `git worktree remove`, `git worktree move`,
   `git worktree repair`
 - Branch creation, deletion, or renaming
-- Merges, rebases, or cherry-picks
+- Merges, rebases, or cherry-picks — the confirmation states in advance that
+  a conflict triggers `--abort` and a question (`lane-protocol.md` Phase 3)
+- Pushing a lane branch or opening a PR (`git push -u`, `gh pr create`)
 - `git worktree prune` — only when `git worktree list --porcelain` shows a
   `prunable` entry
 - Destructive commands: `git reset` (especially `--hard`), `git clean`,
@@ -39,9 +41,10 @@ commits. Out of scope for this skill.
 Read-only observation needs no confirmation: `git status`, `git diff`,
 `git log`, `git show`, `git worktree list`, `git branch --list/-a`,
 `git branch --show-current`, `git rev-parse`, `git merge-base`, and
-`git stash list`. Network calls are not observation: `git ls-remote`,
-`git fetch`, and `git push` reach the remote with the user's credentials and
-run only after confirmation.
+`git stash list`, `git cherry`. Network calls are not observation:
+`git ls-remote`, `git fetch`, `git push`, and `gh pr create` / `gh pr view`
+reach the remote with the user's credentials and run only after
+confirmation.
 
 ## Confirmation format
 
@@ -83,7 +86,7 @@ files, branch already exists), stop and report — do not "fix" it silently.
 
 ## Lane-specific guards
 
-- The lane path must be `<main-root>/.agent/worktrees/<slug>/` (protocol
+- The lane path must be `<main-root>/.agent/worktrees/<slug>/` (router
   non-negotiable #2). Refuse sibling-directory worktrees unless the user
   explicitly overrides, and never create a lane relative to a subdirectory or
   from inside another lane.
@@ -96,8 +99,9 @@ files, branch already exists), stop and report — do not "fix" it silently.
   drops every stale entry at once, so name any foreign `prunable` entry in
   the confirmation before proposing it.
 - Branch deletion after integration: prefer `git branch -d` (refuses
-  unmerged work). `git branch -D` is destructive and needs its own explicit
-  approval.
+  unmerged work `[git docs]`). `git branch -D` is destructive and needs its
+  own explicit approval, backed by the evidence `lane-protocol.md` Phase 4
+  requires (`git cherry` output or a merged PR).
 
 ## Anti-hallucination
 

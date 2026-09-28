@@ -1,7 +1,7 @@
 # Legacy → DDD migration
 
-Sources: `[Fowler]` (strangler fig), `[IDDD]`, `[Evans Reference]` (ACL),
-`[prática pós-2020]` (bubble context), `[Distilled ch.7]` (modeling debt).
+Sources: `[Fowler]` (strangler fig), `[Evans Reference]` (ACL),
+`[Evans Legacy 2013]` (bubble context), `[Distilled ch.7]` (modeling debt).
 
 The rule: **never rewrite from scratch, never boil the ocean.** Migrate by
 growing new, well-modeled contexts around the legacy and strangling it
@@ -19,7 +19,7 @@ feature by feature; the legacy shrinks until it can be switched off.
 Steps: intercept → implement beside → route gradually → decommission.
 Keep each step shippable and reversible.
 
-### Bubble context `[prática pós-2020]`
+### Bubble context `[Evans Legacy 2013]`
 
 A small new bounded context with its own model, wrapped in an ACL so the
 legacy language never leaks in (or out). Ideal for the first pilot: one hot

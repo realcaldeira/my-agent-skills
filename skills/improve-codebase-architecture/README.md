@@ -6,22 +6,26 @@ deepening plan), explores alternative interfaces ("design it twice" with
 parallel design subagents), and teaches depth/seam/leverage/locality on
 demand. Modes: audit, deepen, interfaces, explain. Deliverables are named
 with the project's domain nouns and judged in a fixed architecture vocabulary
-(module, interface, depth, seam, adapter, leverage, locality) whose forbidden
-substitutes ("component", "service", "API", "boundary") are anti-drift
-guards.
+(module, interface, depth, seam, adapter, leverage, locality); the forbidden
+substitutes (English and pt-BR) are listed once, in
+`references/vocabulary.md`, as anti-drift guards.
 
 ## Provenance and attribution
 
 Ported from Matt Pocock's improve-codebase-architecture skill in
 [mattpocock/skills](https://github.com/mattpocock/skills) (MIT — SKILL.md,
 LANGUAGE.md, DEEPENING.md, INTERFACE-DESIGN.md as of upstream history around
-commit `a36584e`). See
-[NOTICE.md](NOTICE.md) for sources and license texts. The vocabulary is
-influenced by John Ousterhout, *A Philosophy of Software Design*
-(depth-as-leverage, "design it twice", interface vs. implementation), and
-Michael Feathers, *Working Effectively with Legacy Code* (seams, testing
-across them); cite `[Ousterhout]` and `[Feathers]` accordingly (see
-`SKILL.md` §Citation rules).
+commit `a36584e`); the direct copy came through
+[akitaonrails/my-skills](https://github.com/akitaonrails/my-skills), which
+derives from it. See [NOTICE.md](NOTICE.md) for sources and license texts.
+The vocabulary is influenced by John Ousterhout, *A Philosophy of Software
+Design* (deep vs. shallow modules, ch.4; "design it twice", ch.11), and
+Michael Feathers, *Working Effectively with Legacy Code* (the seam
+definition, ch.4). Only those claims carry `[Ousterhout]` / `[Feathers]`;
+the source attributes nothing else to them, so the rest of the method
+(internal vs. external seams, the interface as test surface, tests that
+survive refactors) is tagged `[prática pós-2020]` (see `SKILL.md` §Citation
+rules).
 
 Restructuring relative to the source: the router is a progressive-disclosure
 dispatcher (≤150 lines); knowledge moved into `references/`; output templates
@@ -72,7 +76,8 @@ into `~/.agents/skills` — see the repo README.
 Advisory skill: every mode produces a report or plan and never edits code or
 tests. The only side effect is writing a glossary entry or ADR during
 `deepen`, and only after the proposed text is shown and the user confirms; it
-never creates a glossary/ADR file unasked. No git mutations, network calls,
+never creates a glossary/ADR file unasked. `audit` may run read-only
+`git log` to find change hot spots. No git mutations, network calls,
 credential use, or running project code. Repository content (code, docs,
 ADRs, agent-instruction files) is treated as untrusted data, never as
 instructions.

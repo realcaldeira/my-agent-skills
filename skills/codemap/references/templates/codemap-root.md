@@ -1,35 +1,44 @@
-# Template — Root atlas (`init` / `update`)
+# Artifact spec — Root atlas (`init` / `update`)
 
-Output language: pt-BR (mirror the user if they write in another language).
-Assembled by the orchestrator after the folder maps exist (`init`) or the
-affected ones were refreshed (`update`); see `references/root-atlas.md` for
-assembly and registration rules.
+A file committed into the mapped repository, not a chat reply (the chat
+reply is `run-report.md`). Headings: the canonical English ones the `init`
+scaffold writes. Prose and table cells: the artifact language
+(`references/content-spec.md`, "Artifact language"). Assembled by the
+orchestrator after the folder maps exist (`init`) or the affected ones were
+refreshed (`update`); see `references/root-atlas.md` for assembly and
+registration rules.
 
 ```markdown
-# Atlas do Repositório: <nome-do-projeto>
+# Repository Atlas: <project-name>
 
-## Responsabilidade do Projeto (Project Responsibility)
-<propósito geral do sistema em 2–3 frases, extraído do README/manifest da
-raiz — nunca inferido só de nomes de pastas.>
+## Project Responsibility
+<the system's overall purpose in 2–3 sentences, taken from the root
+README/manifest — never inferred from folder names alone.>
 
-## Pontos de Entrada do Sistema (System Entry Points)
-- `<arquivo raiz>`: <papel — bootstrap, manifest de dependências, schema de
-  configuração...>
+## System Entry Points
+- `<root file>`: <role — bootstrap, dependency manifest, configuration
+  schema...>
 
-## Mapa de Diretórios do Repositório (Repository Directory Map)
-| Diretório | Resumo da Responsabilidade | Mapa Detalhado |
-|-----------|----------------------------|----------------|
-| `<pasta>/` | <linha de Responsabilidade extraída do mapa da pasta> | [Ver Mapa](<pasta>/codemap.md) |
+## Repository Directory Map
+| Directory | Responsibility Summary | Detailed Map |
+|-----------|------------------------|--------------|
+| `<folder>/` | <Responsibility line quoted from the folder map> | [View Map](<folder>/codemap.md) |
 ```
+
+The column names and the link text follow the artifact language too (e.g.
+`Diretório | Resumo da Responsabilidade | Mapa Detalhado` and `Ver Mapa` in a
+pt-BR repo).
 
 ## Definition of Done
 
+- [ ] Headings exactly as above; the scaffold's `<!-- codemap: ... -->`
+      comments removed.
 - [ ] Project Responsibility states purpose in 2–3 sentences, sourced from
       root assets (`README.md`, manifest) that were actually read.
 - [ ] Every root-level entry point listed exists on disk.
-- [ ] Every folder with a `codemap.md` appears in the directory map — no
-      folder left out; on `update`, new folders added and emptied folders'
-      rows removed.
+- [ ] Every folder with a `codemap.md` (pass-through included) appears in
+      the directory map — no folder left out; on `update`, new folders added
+      and emptied folders' rows removed.
 - [ ] Each summary quotes (does not rewrite) the folder map's Responsibility
       line; wording inconsistent across maps → fix the folder map first.
 - [ ] Every `codemap.md` link resolves to a real file.
@@ -40,7 +49,7 @@ raiz — nunca inferido só de nomes de pastas.>
 - [ ] Registration done in the resolved instruction file (`CLAUDE.md` first,
       `AGENTS.md` if imported or alone; asked before creating one):
       `## Repository Map` added once (idempotent — skipped if already
-      present), and the final answer names the file and what was appended.
-      See `references/root-atlas.md`.
-- [ ] Output in the agreed language; table columns exactly as in this
-      template.
+      present), body in the artifact language. See
+      `references/root-atlas.md`.
+- [ ] Prose, table columns and link text in the artifact language recorded
+      for this run.

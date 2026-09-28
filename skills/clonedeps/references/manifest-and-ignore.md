@@ -17,7 +17,7 @@ Location: `.agent/clonedeps.json`. Never add it to `.gitignore`:
 
 ```json
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updatedAt": "<ISO-8601 timestamp>",
   "dependencies": [
     {
@@ -25,6 +25,7 @@ Location: `.agent/clonedeps.json`. Never add it to `.gitignore`:
       "resolvedVersion": "<version in use>",
       "repoUrl": "<HTTPS repo URL>",
       "ref": "<pinned tag or SHA>",
+      "commit": "<full 40-hex SHA checked out (rev-parse HEAD, safe clone step 3)>",
       "path": ".agent/clonedeps/repos/<owner>__<repo>",
       "packagePath": "<subdir when the source is a monorepo>",
       "reason": "<one sentence: why this source helps>"
@@ -33,8 +34,14 @@ Location: `.agent/clonedeps.json`. Never add it to `.gitignore`:
 }
 ```
 
-`packagePath` is omitted for single-package repos. Worked examples live in
-`templates/manifest.md`.
+`packagePath` is omitted for single-package repos. `commit` is required:
+tags are mutable, so it is what `status` compares HEAD against. A `1.0.0`
+manifest has no `commit`: `status` reports HEAD as "não verificada", and the
+next `sync` records it (bumping `version` to `1.1.0`).
+
+Persisted text (`reason`, the registered section) is written in English, or
+in the instruction file's existing language when it has one — never copied
+from a clone.
 
 If a clone fails after earlier clones succeeded, still write entries for the
 successful clones so future inspection is not misled.
@@ -53,7 +60,25 @@ No ecosystem folders, no per-package clone folders, no per-version folders.
 
 If multiple packages come from the same monorepo, clone the repository once
 and give each manifest entry the same `path` with a different `packagePath`.
-Never clone per package.
+Never clone per package. Worked example — two `dependencies` entries, one
+clone:
+
+```json
+{ "name": "@example/core", "resolvedVersion": "4.2.0",
+  "repoUrl": "https://github.com/example-org/example-lib",
+  "ref": "@example/core@4.2.0", "commit": "<40-hex>",
+  "path": ".agent/clonedeps/repos/example-org__example-lib",
+  "packagePath": "packages/core", "reason": "Dispatch internals." },
+{ "name": "@example/plugin-x", "resolvedVersion": "4.2.0",
+  "repoUrl": "https://github.com/example-org/example-lib",
+  "ref": "@example/core@4.2.0", "commit": "<same 40-hex>",
+  "path": ".agent/clonedeps/repos/example-org__example-lib",
+  "packagePath": "packages/plugin-x", "reason": "Plugin resolution." }
+```
+
+Entries sharing a `path` share one checkout, so they share `ref` and
+`commit`. If their resolved versions map to different tags, pick the one the
+task needs and note the mismatch in the plan's caveats.
 
 ## Managed ignore blocks
 
@@ -67,9 +92,36 @@ only inside the markers:
 # END agent-skills clonedeps
 ```
 
-Optional harness-specific extra: some file-search tools skip gitignored
-paths. If the harness needs it, add an ignore-file allowlist for
-`.agent/clonedeps/` so clones stay readable without changing git behavior.
+Optional, asked separately: ripgrep-based search tools (Claude Code's Grep
+included) skip gitignored and hidden paths. If clones must be searchable from
+the project root, add a root `.ignore` file (read by ripgrep/fd, not git)
+with the same markers — its whitelist overrides `.gitignore` and the hidden
+rule for those tools only:
+
+```gitignore
+# BEGIN agent-skills clonedeps
+!/.agent/
+!/.agent/clonedeps/repos/
+# END agent-skills clonedeps
+```
+
+Otherwise search clones by explicit path or with `--no-ignore --hidden`.
+
+## Project tooling exclusion
+
+`.gitignore` does not stop the project's own JS tooling from collecting the
+clones: vitest, jest, and eslint (flat config ignores only `node_modules`
+and `.git`) walk into `.agent/` and run or lint third-party tests and
+sources; pytest skips dot-dirs by default. In `sync`, look for these configs;
+when present, warn the user and offer (confirm-first, asked separately) one
+of:
+
+- exclude `.agent/` in the tool's config, keeping its defaults — vitest
+  `test.exclude: [...configDefaults.exclude, '**/.agent/**']`, jest
+  `testPathIgnorePatterns`/`modulePathIgnorePatterns` (regex `/\.agent/`,
+  plus `/node_modules/`), eslint `ignores: ['.agent/']` — and record the
+  files touched in the report;
+- or leave config alone and run those tools on explicit paths.
 
 ## Agent-instruction file registration
 
@@ -110,13 +162,22 @@ that.
 
 ## Status: manifest vs disk
 
-For each manifest entry, check that the `path` exists and that
-`git remote get-url origin` matches `repoUrl` (mismatch → report an origin
-mismatch). Also look for orphans: directories under `.agent/clonedeps/repos/`
-that no entry claims, and leftover temp dirs (`.tmp-*`, see the safe clone
-pattern in `git-safety.md`). Flag dirty clones (`git -C <path> status
---porcelain` non-empty — local notes or edits). Report only — `status`
-mutates nothing.
+For each manifest entry, check:
+
+- the `path` exists (else: missing);
+- `git -C <path> remote get-url origin` matches `repoUrl` (else: origin
+  mismatch — do not read or sync it; ask, per `git-safety.md`);
+- `git -C <path> rev-parse HEAD` equals `commit` (else: HEAD drift);
+- `git -C <path> status --porcelain` is empty (else: dirty — local edits);
+- the project's lockfile version equals `resolvedVersion` (else: outdated —
+  the project moved to another version). This is a read-only consistency
+  check, not dependency management.
+
+Also look for orphans: directories under `.agent/clonedeps/repos/` that no
+entry claims, and leftover temp dirs (`.tmp-*`, see the safe clone pattern in
+`git-safety.md`). An entry with any mismatch is **stale**; the fix is a
+`sync` of that entry (`git-safety.md`, existing clones). Report only —
+`status` mutates nothing.
 
 ## Cleanup
 
@@ -128,10 +189,13 @@ Cleanup deletes, so it is never inferred and never silent:
 3. Delete only after the user explicitly confirms that list (they may drop
    items from it).
 4. Only after the confirmed directories are gone, remove the managed marker
-   block from `.gitignore` (and the optional ignore-file allowlist, if one was
-   added). While any clone remains, keep the block.
+   block from `.gitignore` and from `.ignore` if present (delete `.ignore`
+   only when nothing is left outside the markers). While any clone remains,
+   keep both blocks.
 
 Ask separately before removing `.agent/clonedeps.json`, the registered
-section in the agent-instruction file, or a `claudeMdExcludes` entry added by
-sync — they may be intentional project metadata. Cleanup is idempotent and
+section in the agent-instruction file, a `claudeMdExcludes` entry, or a
+tooling exclusion added by sync — they may be intentional project metadata.
+A kept manifest whose clones were deleted is stale by design; `sync`
+re-materializes it. Cleanup is idempotent and
 never touches anything outside these paths.

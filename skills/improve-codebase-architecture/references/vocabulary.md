@@ -1,8 +1,11 @@
 # Vocabulary — module, interface, depth, seam
 
 Shared terms for every suggestion this skill makes. Use them exactly; do not
-drift into the substitutes listed under Rejected framings — consistent
-language is the whole point. Sources: `[Ousterhout]`, `[Feathers]`, `[Fowler]`,
+drift into the _Avoid_ words (English or pt-BR) or the Rejected framings —
+consistent language is the whole point. This file is the single list of
+forbidden substitutes. Literal references (the Stripe API, a network hop
+between services) are fine; the ban is on using them *in place of* module,
+interface, or seam. Sources: `[Ousterhout]`, `[Feathers]`, `[Fowler]`,
 `[prática pós-2020]`. This file is also the Teach-mode home for depth,
 leverage, locality, the deletion test, and pass-through modules.
 
@@ -14,14 +17,14 @@ leverage, locality, the deletion test, and pass-through modules.
 Anything with an interface and an implementation. Deliberately
 scale-agnostic — applies equally to a function, class, package, or
 tier-spanning slice.
-_Avoid_: unit, component, service.
+_Avoid_: unit, component, service (pt-BR: unidade, componente, serviço).
 
 **Interface**
 Everything a caller must know to use the module correctly. Includes the type
 signature, but also invariants, ordering constraints, error modes, required
 configuration, and performance characteristics.
-_Avoid_: API, signature (too narrow — those refer only to the type-level
-surface).
+_Avoid_: API, signature (pt-BR: API, assinatura) — too narrow, those refer
+only to the type-level surface.
 
 **Implementation**
 What's inside a module — its body of code. Distinct from **Adapter**: a thing
@@ -29,17 +32,18 @@ can be a small adapter with a large implementation (a Postgres repo) or a
 large adapter with a small implementation (an in-memory fake). Reach for
 "adapter" when the seam is the topic; "implementation" otherwise.
 
-**Depth** `[Ousterhout]`
+**Depth** `[Ousterhout]` (ch.4, "Modules Should Be Deep")
 Leverage at the interface — the amount of behaviour a caller (or test) can
 exercise per unit of interface they have to learn. A module is **deep** when a
 large amount of behaviour sits behind a small interface. A module is
 **shallow** when the interface is nearly as complex as the implementation.
 
-**Seam** `[Feathers]`
+**Seam** `[Feathers]` (ch.4, "The Seam Model")
 A place where you can alter behaviour without editing in that place. The
 _location_ at which a module's interface lives. Choosing where to put the seam
 is its own design decision, distinct from what goes behind it.
-_Avoid_: boundary (overloaded with DDD's bounded context).
+_Avoid_: boundary (pt-BR: fronteira, limite) — overloaded with DDD's bounded
+context.
 
 **Adapter**
 A concrete thing that satisfies an interface at a seam. Describes _role_ (what
@@ -60,14 +64,18 @@ fixed everywhere.
   module can be internally composed of small, mockable, swappable parts —
   they just aren't part of the interface. A module can have **internal seams**
   (private to its implementation, used by its own tests) as well as the
-  **external seam** at its interface. `[Ousterhout]`
+  **external seam** at its interface; don't expose internal seams through the
+  interface just because tests use them. `[prática pós-2020]`
 - **The deletion test.** Imagine deleting the module. If complexity vanishes,
   the module wasn't hiding anything (it was a pass-through — Fowler's "middle
   man" at module scale `[Fowler]`). If complexity reappears across N callers,
-  the module was earning its keep.
+  the module was earning its keep. If it only moves sideways, the real owner
+  is elsewhere. Both of the first two outcomes can yield a deepening
+  candidate (merge/inline vs deepen in place) — `friction-signals.md`
+  §Applying the deletion test owns the mapping.
 - **The interface is the test surface.** Callers and tests cross the same
   seam. If you want to test _past_ the interface, the module is probably the
-  wrong shape. `[Ousterhout]`
+  wrong shape. `[prática pós-2020]`
 - **One adapter means a hypothetical seam. Two adapters means a real one.**
   Don't introduce a seam unless something actually varies across it.
   `[prática pós-2020]`
@@ -85,9 +93,9 @@ fixed everywhere.
 
 Anti-drift guards. Do not use these framings in any suggestion.
 
-- **Depth as ratio of implementation-lines to interface-lines**
-  (attributed to Ousterhout's discussion of depth): rewards padding the
-  implementation. We use depth-as-leverage instead. `[Ousterhout]`
+- **Depth as ratio of implementation-lines to interface-lines** (framing
+  from `[Ousterhout]` ch.4 — rejected here): rewards padding the
+  implementation. We use depth-as-leverage instead.
 - **"Interface" as the TypeScript `interface` keyword or a class's public
   methods**: too narrow — interface here includes every fact a caller must
   know.

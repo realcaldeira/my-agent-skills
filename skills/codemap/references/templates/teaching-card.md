@@ -7,7 +7,7 @@ and what to do instead — including when NOT to use it.
 ```markdown
 ## <Conceito — ex. codemap, atlas raiz, detecção de mudanças por hash>
 
-**Definição:** <o que é, em 1–2 frases, com a fonte — ex. `[codemap.mjs output]`>
+**Definição:** <o que é, em 1–2 frases, com a fonte — ex. `[codemap refs]`>
 
 **Para que serve:** <o problema que resolve — navegação/onboarding barato em
 repositórios desconhecidos>
@@ -16,28 +16,31 @@ repositórios desconhecidos>
 - <bullets curtos — ex. repositório desconhecido, muitas pastas, onboarding>
 
 **Custo:**
-- <ex. uma operação cara: um subagent por pasta para escrever os mapas;
-  atualizações só nas pastas cujo hash mudou>
+- <ex. uma operação cara: um subagent por pasta com arquivos próprios para
+  escrever os mapas; atualizações só nas pastas com arquivos alterados>
 
 **Quando NÃO usar / alternativas:**
 - <bullets — ex. repo pequeno (< ~10 pastas): leia o código direto; repositório
   já conhecido: não re-mapear; dúvida pontual: explique o módulo, não mapeie
-  o repo; só navegação: `repo tree`>
+  o repo; só navegação: `git ls-files | head -50` ou `tree -L 2`>
 
 **Exemplo genérico:**
-<trecho curto — ex. um mapa de pasta ou a saída do `changes`>
+<trecho curto — ex. um mapa de pasta ilustrativo; saída do `changes` só se
+o script foi de fato executado nesta conversa (senão, descreva o formato
+citando `[codemap refs]`)>
 
-**Aprofundar:** <referência deste skill>
+**Aprofundar:** <referência deste skill, ex. `references/content-spec.md`>
 ```
 
 ## Definition of Done
 
 - [ ] Definition and "para que serve" are direct — concept first, no
       preamble.
-- [ ] Cost is stated explicitly (expensive; one subagent per folder; refresh
-      only changed folders).
+- [ ] Cost is stated explicitly (expensive; one subagent per folder with
+      files of its own; refresh only folders with changed files).
 - [ ] "Quando NÃO usar / alternativas" is present and concrete.
 - [ ] Example is short and generic (no product or project-specific names).
-- [ ] Any claim about script behavior cites `[codemap.mjs output]` or the
-      skill's references; nothing invented.
+- [ ] Claims about the skill or script cite `[codemap refs]`;
+      `[codemap.mjs output]` only for output actually produced in this
+      conversation; nothing invented.
 - [ ] Output in pt-BR.

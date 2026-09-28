@@ -6,14 +6,18 @@ rules (voice matching, fact preservation, when not to act) live in
 
 ## 12. Overused AI words
 
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
+
 **Watch for:** Actually, additionally, align with, bolstered, crucial, deep dive, delve, emphasizing, enduring, enhance, fostering, garner, gate/gated/gating (figurative; keep technical uses), highlight (verb), interplay, intricate/intricacies, key (adjective), landscape (abstract noun), meticulous/meticulously, pivotal, quietly, robust (figurative; keep technical uses), showcase, tapestry (abstract noun), testament, underscore (verb), valuable, vibrant
-**Problem:** Models use these words far more often than people do, especially in groups. This is the only vocabulary list in the skill. A formal word outside it is not a tell by itself.
+**Problem:** Models use these words far more often than people do, especially in groups. This is the only English vocabulary list in the skill; pt-BR equivalents are under Other languages in `references/voice-and-guardrails.md`. A formal word outside these lists is not a tell by itself.
 **Before:**
 > Additionally, a distinctive feature of Somali cuisine is the incorporation of camel meat. An enduring testament to Italian colonial influence is the widespread adoption of pasta in the local culinary landscape, showcasing how these dishes have integrated into the traditional diet.
 **After:**
 > Camel meat is a distinctive part of Somali cuisine. Pasta, which came with Italian colonial influence, is now widely eaten and part of the traditional diet.
 
 ## 13. Inflated significance
+
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
 
 **Watch for:** stands as a testament, a pivotal or crucial moment, plays a key role, marking or shaping the, underscores its importance, reflects a broader, enduring or lasting legacy, setting the stage for, evolving landscape, indelible mark; Despite these challenges... continues to thrive, Challenges and Legacy, Future Outlook, Awards and recognition; the future looks bright, exciting times ahead, a step in the right direction
 **Problem:** An ordinary detail is said to mark a change, prove a legacy, or promise a future. The move appears at three scales: a phrase, a stock "challenges and outlook" section, and a send-off paragraph. Keep the fact and drop the significance. End on the last concrete fact; if the source states real plans, use those.
@@ -32,6 +36,8 @@ rules (voice matching, fact preservation, when not to act) live in
 
 ## 14. Vague connection or association
 
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
+
 **Watch for:** associated with, in association with, connected to, in connection with, linked to, tied to
 **Problem:** The text says two things are connected without saying how. "He was associated with the leadership of ExampleCorp" hides whether he was the CEO, a board member, or a consultant. Name the relationship the source gives. If the source does not say, keep the vague wording rather than inventing a role.
 **Before:**
@@ -40,6 +46,8 @@ rules (voice matching, fact preservation, when not to act) live in
 > He founded and conducts the Rajhans Orchestra. The concerts were part of the celebrations of Pakistan's 50th anniversary.
 
 ## 15. Shallow -ing riders
+
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
 
 **Watch for:** highlighting, underscoring, emphasizing, ensuring, reflecting, symbolizing, contributing to, cultivating, fostering, encompassing, showcasing
 **Problem:** An -ing phrase is bolted onto a simple fact to make it sound deeper. Attaching it to a named source ("Roger Ebert highlighted the lasting influence") does not make it true. Keep the fact; keep the rider only when the source supports what it claims.
@@ -50,6 +58,8 @@ rules (voice matching, fact preservation, when not to act) live in
 
 ## 16. Sales language
 
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
+
 **Watch for:** boasts, vibrant, rich (figurative), profound, enhancing, exemplifies, commitment to, natural beauty, nestled, in the heart of, groundbreaking (figurative), renowned, featuring, diverse array, breathtaking, must-visit, stunning
 **Problem:** The text reads like an advertisement, especially for places, culture, products, or organizations. State what the thing is.
 **Before:**
@@ -58,6 +68,8 @@ rules (voice matching, fact preservation, when not to act) live in
 > Alamata Raya Kobo is a town in the Gonder region of Ethiopia.
 
 ## 17. Borrowed authority
+
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
 
 **Watch for:** experts argue, observers have cited, industry reports, some critics, several publications; cited, featured, or profiled in [a list of outlets], trade publications, independent coverage; active social media presence, over N followers
 **Problem:** A name or an unnamed authority stands in for what was said. Unnamed experts prop up a claim; a list of prestige outlets props up a person. When the source text names the real source and what it said, use that. Otherwise cut the unsupported claim or the list. Never invent a source. A missing citation alone is not a tell; most writing is unsourced.
@@ -71,6 +83,8 @@ rules (voice matching, fact preservation, when not to act) live in
 > Her views have been cited in The New York Times and the BBC.
 
 ## 18. Avoiding is, are, and has
+
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
 
 **Watch for:** serves as, stands as, functions as, operates as, marks, represents [a]; boasts, features, offers, maintains [a]; refers to
 **Problem:** Simple verbs are replaced with longer phrases. Use *is*, *are*, and *has*.

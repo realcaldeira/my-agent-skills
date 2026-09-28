@@ -10,6 +10,7 @@ Output language: pt-BR.
 
 ## Perguntas em aberto
 - <2–4 perguntas que travam decisões; quem responde>
+- Premissas: <o que foi assumido sem confirmação do usuário, ou "nenhuma">
 
 ## Subdomínios identificados
 | Subdomínio | Tipo | Justificativa | Esforço sugerido |
@@ -33,10 +34,10 @@ Output language: pt-BR.
 - Alternativa considerada e por que não: <...>
 
 ## Workshop de validação — Event Storming
-- Formato: <Big Picture | Design Level>
+- Formato: <Big Picture | Process Modelling | Software Design>
 - Duração e data sugerida: <...>
 - Participantes: <papéis>
-- Materiais: <stickies por cor / board remoto>
+- Materiais: <stickies pela legenda de cores padrão / board remoto>
 - Critério de sucesso: <o que precisa sair do workshop>
 
 ## Passo seguinte (uma sprint)

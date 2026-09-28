@@ -3,7 +3,9 @@
 Output language: pt-BR. Canonical terms stay in English (seam, adapter,
 leverage, locality, port), Portuguese equivalent on first use. Replace every
 placeholder; delete nothing. The plan is the output of the grilling loop —
-every field must reflect a decision made *with* the user, not assumed.
+every field reflects a decision made *with* the user or is explicitly marked
+`em aberto — assumido: <padrão recomendado>` (see `deepening.md` §Grilling
+loop for when the loop ends).
 
 ```markdown
 # Plano de aprofundamento — <candidato, nome do glossário do domínio>
@@ -12,8 +14,9 @@ every field must reflect a decision made *with* the user, not assumed.
 - **Módulo(s):** <o que será aprofundado — arquivos/módulos atuais>
 - **Fricção resolvida:** <qual sinal de `friction-signals.md`, com evidência
   `arquivo:linha`>
-- **Resultado do deletion test:** <complexidade reaparece em N callers —
-  onde>
+- **Resultado do deletion test:** <merge/inline — pass-through, complexidade
+  some; dobrar em <caller/callee> | aprofundar no lugar — complexidade
+  reaparece em N callers, onde>
 
 ## Categoria de dependência
 - **Categoria:** <1 in-process | 2 local-substitutable | 3 remote-but-owned
@@ -56,19 +59,23 @@ every field must reflect a decision made *with* the user, not assumed.
 ## Riscos e trade-offs
 - <o que pode piorar no curto prazo; o que foi deliberadamente deixado de fora
   (ex.: segunda interface, migração completa de testes)>
+```
 
 ## Definition of Done
-- [ ] Categoria de dependência classificada (1–4) e coerente com a estratégia
-      de testes
-- [ ] Seam posicionada; seams internas não expostas na interface
-- [ ] Regra dos dois adaptadores respeitada (ou seam adiada, com motivo)
-- [ ] Plano de testes é "replace, don't layer": lista o que morre e o que
-      nasce
-- [ ] Primeiro incremento cabe em uma sprint e é reversível
-- [ ] Termos do glossário do domínio usados nos nomes; vocabulário do skill
-      (`vocabulary.md`) sem substitutos proibidos
-- [ ] Riscos declarados; nada de "reescrever tudo"
-- [ ] Nenhum glossário/ADR escrito sem confirmação explícita do usuário;
-      nenhum arquivo de código ou teste editado
-- [ ] Saída em pt-BR; seções do template preservadas na ordem
-```
+
+Self-check before answering; not part of the output.
+
+- [ ] Dependency category classified (1–4) and consistent with the test
+      strategy.
+- [ ] Seam placed; internal seams not exposed through the interface.
+- [ ] Two-adapters rule respected (or the seam deferred, with a reason).
+- [ ] Test plan is "replace, don't layer": lists what dies and what replaces
+      it.
+- [ ] First increment fits in one sprint and is reversible.
+- [ ] Every field is a user decision or marked `em aberto — assumido: …`.
+- [ ] Domain glossary terms used in names; no forbidden substitutes from
+      `vocabulary.md`.
+- [ ] Risks stated; no "rewrite everything".
+- [ ] No glossary/ADR written without explicit user confirmation; no code or
+      test file edited.
+- [ ] Output in pt-BR; template sections kept in order.

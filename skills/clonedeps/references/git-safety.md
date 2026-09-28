@@ -122,7 +122,7 @@ reachability check), so `status` can tell leftovers from real clones.
 
 3. Check `git -C "<tmp>" rev-parse HEAD` equals the recorded commit (tag) or
    the pinned SHA (`rev-parse --verify "<sha>^{commit}"`); on mismatch,
-   delete the temp dir and stop.
+   delete the temp dir and stop. This SHA is the manifest's `commit`.
 4. List agent-instruction files in the clone (Read-only rule) and report
    them.
 5. Move the temp dir into the final safe-name path only after steps 3–4.
@@ -130,7 +130,16 @@ reachability check), so `status` can tell leftovers from real clones.
 
 For an existing clone, first verify `git remote get-url origin` matches the
 approved repo URL. On mismatch: stop and ask whether to clean/reclone —
-never trust a clone whose origin changed.
+never trust a clone whose origin changed. Then:
+
+- HEAD equals the entry's `commit` and the ref is unchanged → reuse as is.
+- Dirty (`status --porcelain` non-empty) → stop and ask; never overwrite
+  local changes.
+- HEAD drifted, or the plan pins a new ref (the project upgraded the
+  dependency) → after network OK, verify the ref, then in place:
+  `<prefix> -C "<path>" fetch --depth 1 --no-tags origin "refs/tags/<tag>"`
+  (or `"<full-sha>"`), `checkout -q --detach FETCH_HEAD`, re-run steps 3–4,
+  and update the entry's `ref`, `commit`, and `resolvedVersion`.
 
 ## Read-only rule
 

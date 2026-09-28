@@ -6,6 +6,8 @@ when not to act) live in `references/voice-and-guardrails.md`; read that file fi
 
 ## 19. Bold as decoration
 
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
+
 **Problem:** Words are bolded without a reason, and vertical lists give every item a bold label and a colon. Remove the bold. Turn a labeled list into prose when the labels carry no information of their own.
 **Before:**
 > It blends **OKRs (Objectives and Key Results)**, **KPIs (Key Performance Indicators)**, and visual strategy tools such as the **Business Model Canvas (BMC)** and **Balanced Scorecard (BSC)**.
@@ -20,6 +22,8 @@ when not to act) live in `references/voice-and-guardrails.md`; read that file fi
 
 ## 20. Decorative headings
 
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
+
 **Problem:** Headings capitalize every main word, and headings or list items carry emojis or arrows (→) as decoration. A horizontal rule sits between every section, or the document opens with a top-level heading that repeats its own title. Use sentence case, remove the decoration and the rules, and let the title stand once.
 **Before:**
 > ## Strategic Negotiations And Global Partnerships
@@ -33,9 +37,11 @@ when not to act) live in `references/voice-and-guardrails.md`; read that file fi
 
 ## 21. Curly quotation marks
 
+**Source:** [Wikipedia: Signs of AI writing] · [blader/humanizer]
+
 **Weak alone.** Most editors auto-curl quotes.
 
-**Problem:** Curly quotes (“...”) appear where the writer or target format uses straight quotes ("..."). Most editors auto-curl, so this is *weak alone*.
+**Problem:** Curly quotes (“...”) appear where the writer or target format uses straight quotes ("..."). Where curly quotes are the typographic norm, as in edited pt-BR, the pattern does not apply.
 **Before:**
 > He said “the project is on track” but others disagreed.
 **After:**

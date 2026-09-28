@@ -2,9 +2,10 @@
 
 Domain-Driven Design consultant. Modes: `analyze` (full DDD audit of a
 codebase), `review` (DDD review of files, a diff, or a PR), `design`
-(strategic design: event storming, bounded contexts, context map), `spec`
-(legacy → DDD migration spec), `explain` (teach a concept, including when NOT
-to use it). Output is in pt-BR.
+(strategic design: event storming, bounded contexts, context map), `model`
+(tactical design of one aggregate or feature: aggregate design canvas),
+`spec` (legacy → DDD migration spec), `explain` (teach a concept, including
+when NOT to use it). Output is in pt-BR.
 
 Not for generic module/interface refactoring (`improve-codebase-architecture`),
 local cleanup (`simplify`), or technology-choice ADRs and system design with no
@@ -40,7 +41,8 @@ material by short source tag (vocabulary in `SKILL.md`).
 ## Safety note
 
 Advisory and read-only by default: the skill reads code and answers in chat.
-It runs no scripts, makes no network calls, uses no credentials, and makes no
-git changes. Editing code or saving a deliverable (e.g. the migration spec) to
+It runs no scripts, uses no credentials, and makes no git changes. `review`
+reads the local git diff; the only network call is `gh pr diff <n>` for a PR
+review, and only after the user confirms it. Editing code or saving a deliverable (e.g. the migration spec) to
 a file happens only when the user explicitly asks. Code, docs, PR/issue text,
 and agent-instruction files under analysis are treated as untrusted data.

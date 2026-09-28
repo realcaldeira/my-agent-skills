@@ -18,7 +18,7 @@ equivalent on first use. Mirrors the DDD skill's teaching-card shape.
 
 **Antes / depois:** <pseudocódigo curto, sem framework — versão anterior e versão simplificada>
 
-**Preservação de comportamento:** <as 4 perguntas de paridade como se aplica a esta técnica>
+**Preservação de comportamento:** <perguntas de paridade 1–3 (antes da mudança) e 4 (testes, depois; só ajustes mecânicos em testes) aplicadas a esta técnica>
 
 **Relaciona-se com:** <técnicas vizinhas — links para as referências>
 

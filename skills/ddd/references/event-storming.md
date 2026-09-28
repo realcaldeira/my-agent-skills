@@ -1,6 +1,7 @@
 # Event storming — facilitation guide
 
-Sources: `[EventStorming]` (Brandolini), `[DDD Crew]`, `[Distilled ch.4]`.
+Sources: `[Brandolini]`, `[DDD Crew]` (EventStorming glossary cheat sheet),
+`[Distilled ch.7]`.
 
 Event storming is a collaborative workshop for discovering a domain fast.
 Domain experts and developers work on one wall (or one board), in the
@@ -8,23 +9,28 @@ language of the business.
 
 ---
 
-## Three formats
+## Three formats `[DDD Crew]`
 
 | Format | Goal | Duration | Participants |
 | --- | --- | --- | --- |
 | **Big Picture** | discover the whole domain, pain points, boundaries | 2–4h | 8–20 mixed |
-| **Process / Design Level** | model one business flow in detail | 2–4h | 4–8 mixed |
-| **Implementation Level** | refine toward code: commands, events, aggregates | 1–2h | 3–6 devs + expert |
+| **Process Modelling** | model one business process end to end: actors, commands, policies, read models | 2–4h | 4–8 mixed |
+| **Software Design** (aka Design Level) | design the software for one context: commands, aggregates/constraints, policies, read models | 1–2h | 3–6 devs + expert |
 
-Sequence per `[DDD Crew]`: Big Picture → domain message flow → bounded
-context canvas → context map → design level → ADRs.
+Durations and headcounts are facilitation heuristics `[sem fonte verificada]`.
+Where the workshops sit in the overall discovery order: `strategic-design.md`
+(Suggested order).
 
 ## Materials
 
-Physical: unlimited sticky notes (orange = events, blue = commands, yellow =
-actor, pink = hot spot, purple = external system), thick markers, a long
-wall, a timer. Remote: Miro/Mural with the same color rules, one facilitator
-plus one co-facilitator for chat.
+Physical: unlimited sticky notes, thick markers, a long wall, a timer.
+Remote: Miro/Mural with the same color rules, one facilitator plus one
+co-facilitator for chat.
+
+Color legend `[DDD Crew]`: orange = domain event; blue = command; small
+yellow = actor/person; large yellow = aggregate/constraint; lilac = policy;
+green = read model; wide pink = external system; neon pink, rotated 45° =
+hotspot.
 
 **Rules:** events are past-tense sticky notes ("Order Placed"); no design
 discussion during the chaotic exploration phase; everybody sticks; the expert
@@ -39,21 +45,24 @@ is always right about the domain, the developer about feasibility.
 3. **Timeline enforcement (20 min):** facilitator helps order the events
    left→right, enforcing narrative ("what happens before/after?").
 4. **Walk the wall (30 min):** narrate the whole story; add missing events;
-   mark **hot spots** (confusion, pain, politics) in pink — do not solve them.
-5. **External systems and actors (15 min):** yellow for people/roles, purple
-   for external systems.
+   mark **hotspots** (confusion, pain, politics) in neon pink — do not solve
+   them.
+5. **External systems and actors (15 min):** small yellow for people/roles,
+   wide pink for external systems.
 6. **Bounded context candidates (20 min):** look for language changes along
    the timeline; draw dotted boundaries; name them with the experts.
 
-## Design Level flow (per context)
+## Software Design (Design Level) flow (per context)
 
 1. Restore the events of the flow (from Big Picture).
 2. Add **commands** (blue) that cause each event, and the **read model**
-   (green/ochre) the actor consults.
-3. Group command+event+aggregate around one consistency boundary.
-4. Add **policies** ("whenever X, then do Y") and external systems.
-5. Write Given-When-Then scenarios for each decision (see
-   `templates/strategic-plan.md`); these become acceptance tests.
+   (green) the actor consults.
+3. Group command+event around one **aggregate/constraint** (large yellow) —
+   one consistency boundary.
+4. Add **policies** (lilac: "whenever X, then do Y") and external systems.
+5. Write a Given-When-Then scenario for each decision; these become
+   acceptance tests. Format: *Given* <prior events/state> — *When* <command>
+   — *Then* <new events or rejection>.
 
 ## Domain message flow modelling `[DDD Crew]`
 

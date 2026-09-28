@@ -9,18 +9,19 @@ import {
   readdirSync,
   readFileSync,
   realpathSync,
-  renameSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 export const STATE_DIR = '.agent';
 export const STATE_FILE = 'codemap.json';
-export const LEGACY_STATE_FILE = 'cartography.json';
 export const CODEMAP_FILE = 'codemap.md';
+// Dot-directories are skipped unless an include/exception names them; these
+// never are (VCS internals and agent state, including this script's own).
+const ALWAYS_SKIPPED_DIRS = new Set(['.git', STATE_DIR]);
 
 // Glob → regex body: `**/` spans zero or more folders, `**` anything,
 // `*` and `?` never cross a `/`.
@@ -33,8 +34,43 @@ function globToRegexBody(pattern) {
   return reg;
 }
 
+// `{a,b}` sets (nestable) expand into one pattern per alternative, as in
+// shells and most glob libraries. A `{…}` without a top-level comma stays
+// literal; an unbalanced `{` leaves the pattern unchanged.
+export function expandBraces(pattern) {
+  const open = pattern.indexOf('{');
+  if (open === -1) return [pattern];
+  let depth = 0;
+  for (let i = open; i < pattern.length; i++) {
+    if (pattern[i] === '{') depth++;
+    else if (pattern[i] === '}' && --depth === 0) {
+      const body = pattern.slice(open + 1, i);
+      const options = [];
+      let level = 0;
+      let start = 0;
+      for (let j = 0; j < body.length; j++) {
+        if (body[j] === '{') level++;
+        else if (body[j] === '}') level--;
+        else if (body[j] === ',' && level === 0) {
+          options.push(body.slice(start, j));
+          start = j + 1;
+        }
+      }
+      options.push(body.slice(start));
+      const head = pattern.slice(0, open);
+      const tail = pattern.slice(i + 1);
+      if (options.length < 2) {
+        return expandBraces(tail).map((rest) => pattern.slice(0, i + 1) + rest);
+      }
+      return options.flatMap((option) => expandBraces(head + option + tail));
+    }
+  }
+  return [pattern];
+}
+
 // Include/exclude globs. Unanchored unless they start with `/`: `src/**/*.ts`
 // also matches `packages/a/src/x.ts`. A trailing `/` matches everything below.
+// `{a,b}` sets are expanded first.
 export class PatternMatcher {
   regex;
 
@@ -44,7 +80,7 @@ export class PatternMatcher {
       return;
     }
 
-    const regexParts = patterns.map((pattern) => {
+    const regexParts = patterns.flatMap(expandBraces).map((pattern) => {
       let reg = globToRegexBody(pattern);
 
       if (pattern.endsWith('/')) {
@@ -140,13 +176,29 @@ export function loadGitignore(root) {
     .filter((line) => line && !line.startsWith('#'));
 }
 
-// Only directory segments count, matching the walker (which skips
-// dot-directories but keeps dotfiles such as `.eslintrc.js`).
-const hasDotDirSegment = (relPath) =>
-  relPath
-    .split('/')
-    .slice(0, -1)
-    .some((part) => part.startsWith('.'));
+// Include patterns and exceptions that can opt a dot-directory in: the
+// directory must be named at their start (`.github/workflows/*.yml`,
+// `/.github/**`), not reached through a wildcard.
+export function dotDirOptIns(includePatterns = [], exceptions = []) {
+  return [...includePatterns.flatMap(expandBraces), ...exceptions].map((entry) =>
+    entry.replace(/^\/+/, ''),
+  );
+}
+
+// May the walk enter this folder (segments of a relative directory path)?
+// Dot-directories (`.github`, `.venv`) are skipped unless an opt-in starts
+// with the path of the deepest one; `.git` and `.agent` never are entered.
+// Dotfiles such as `.eslintrc.js` are not directories and always count.
+export function dotDirsAllowed(dirParts, optIns = []) {
+  let deepest = -1;
+  for (let i = 0; i < dirParts.length; i++) {
+    if (ALWAYS_SKIPPED_DIRS.has(dirParts[i])) return false;
+    if (dirParts[i].startsWith('.')) deepest = i;
+  }
+  if (deepest === -1) return true;
+  const prefix = `${dirParts.slice(0, deepest + 1).join('/')}/`;
+  return optIns.some((optIn) => optIn.startsWith(prefix));
+}
 
 const runGit = (root, args) =>
   spawnSync('git', ['-c', 'core.fsmonitor=false', '-C', root, ...args], {
@@ -161,7 +213,7 @@ const runGit = (root, args) =>
 // also when the root itself is ignored by the enclosing repo (for example
 // `vendor/lib` under a `vendor/` rule), where git would list nothing — the
 // caller then falls back to the walker.
-export function listGitFiles(root) {
+export function listGitFiles(root, optIns = []) {
   const result = runGit(root, [
     'ls-files',
     '-z',
@@ -176,7 +228,8 @@ export function listGitFiles(root) {
 
   const files = new Set();
   for (const relPath of result.stdout.split('\0')) {
-    if (!relPath || hasDotDirSegment(relPath)) continue;
+    if (!relPath) continue;
+    if (!dotDirsAllowed(relPath.split('/').slice(0, -1), optIns)) continue;
     const fullPath = path.join(root, relPath);
     try {
       if (lstatSync(fullPath).isFile()) files.add(fullPath);
@@ -187,16 +240,22 @@ export function listGitFiles(root) {
   return [...files].sort();
 }
 
-function walkFiles(root, gitignoreMatcher) {
+function walkFiles(root, gitignoreMatcher, optIns = []) {
   const files = [];
 
   function visit(currentDir) {
-    for (const entry of readdirSync(currentDir, { withFileTypes: true })) {
+    let entries;
+    try {
+      entries = readdirSync(currentDir, { withFileTypes: true });
+    } catch {
+      return; // Unreadable directory (permissions): nothing to map there.
+    }
+    for (const entry of entries) {
       const fullPath = path.join(currentDir, entry.name);
       if (entry.isDirectory()) {
         const relDir = path.relative(root, fullPath).replaceAll(path.sep, '/');
         if (
-          !entry.name.startsWith('.') &&
+          dotDirsAllowed(relDir.split('/'), optIns) &&
           !gitignoreMatcher?.matchesDir(relDir)
         ) {
           visit(fullPath);
@@ -216,7 +275,8 @@ function walkFiles(root, gitignoreMatcher) {
 
 // Candidate files come from git inside a work tree (exact ignore semantics),
 // otherwise from a walk that skips dot-directories and honors the root
-// .gitignore only. Include/exclude/exceptions then apply on top.
+// .gitignore only. Include/exclude/exceptions then apply on top. Generated
+// `codemap.md` files are never sources, whatever the patterns say.
 export function selectFiles(
   root,
   includePatterns,
@@ -227,12 +287,13 @@ export function selectFiles(
 ) {
   const includeMatcher = new PatternMatcher(includePatterns);
   const excludeMatcher = new PatternMatcher(excludePatterns);
-  const gitFiles = useGit ? listGitFiles(root) : null;
+  const optIns = dotDirOptIns(includePatterns, exceptions);
+  const gitFiles = useGit ? listGitFiles(root, optIns) : null;
   const gitignoreMatcher = new GitignoreMatcher(
     gitFiles ? [] : gitignorePatterns,
   );
   const exceptionSet = new Set(exceptions);
-  const candidates = gitFiles ?? walkFiles(root, gitignoreMatcher);
+  const candidates = gitFiles ?? walkFiles(root, gitignoreMatcher, optIns);
 
   return candidates.filter((fullPath) => {
     let relPath = path.relative(root, fullPath).replaceAll(path.sep, '/');
@@ -240,6 +301,7 @@ export function selectFiles(
       relPath = relPath.slice(2);
     }
 
+    if (path.posix.basename(relPath) === CODEMAP_FILE) return false;
     if (gitignoreMatcher.matches(relPath)) return false;
     if (excludeMatcher.matches(relPath) && !exceptionSet.has(relPath)) {
       return false;
@@ -258,65 +320,85 @@ export function computeFileHash(filePath) {
   }
 }
 
-export function computeFolderHash(folder, fileHashes) {
-  const folderFiles = Object.entries(fileHashes)
-    .filter(
-      ([filePath]) =>
-        filePath.startsWith(`${folder}/`) ||
-        (folder === '.' && !filePath.includes('/')),
-    )
-    .sort(([a], [b]) => a.localeCompare(b));
+const toRel = (root, filePath) =>
+  path.relative(root, filePath).replaceAll(path.sep, '/');
 
-  if (!folderFiles.length) return '';
-
-  const hasher = createHash('md5');
-  for (const [filePath, hash] of folderFiles) {
-    hasher.update(`${filePath}:${hash}\n`);
-  }
-  return hasher.digest('hex');
-}
-
-export function getFoldersWithFiles(files, root) {
-  const folders = new Set(['.']);
-
-  for (const filePath of files) {
-    const relPath = path.relative(root, filePath).replaceAll(path.sep, '/');
-    const parts = relPath.split('/').slice(0, -1);
+// Every folder (and ancestor) holding one of these relative file paths.
+// The root (`.`) is not included.
+function foldersOf(relPaths) {
+  const folders = new Set();
+  for (const filePath of relPaths) {
+    const parts = filePath.split('/').slice(0, -1);
     for (let i = 0; i < parts.length; i++) {
       folders.add(parts.slice(0, i + 1).join('/'));
     }
   }
-
   return folders;
 }
 
-export function migrateLegacyState(root) {
-  const stateDir = path.join(root, STATE_DIR);
-  const legacyPath = path.join(stateDir, LEGACY_STATE_FILE);
-  const statePath = path.join(stateDir, STATE_FILE);
-
-  if (existsSync(statePath) || !existsSync(legacyPath)) {
-    return false;
+// Folders that directly contain one of these relative file paths.
+function directFoldersOf(relPaths) {
+  const folders = new Set();
+  for (const filePath of relPaths) {
+    const dir = path.posix.dirname(filePath);
+    if (dir !== '.') folders.add(dir);
   }
-
-  mkdirSync(stateDir, { recursive: true });
-  renameSync(legacyPath, statePath);
-  console.log(
-    `Migrated ${STATE_DIR}/${LEGACY_STATE_FILE} -> ${STATE_DIR}/${STATE_FILE}`,
-  );
-  return true;
+  return folders;
 }
 
-export function loadState(root) {
-  migrateLegacyState(root);
-  const statePath = path.join(root, STATE_DIR, STATE_FILE);
-  if (!existsSync(statePath)) return null;
+// Every folder (plus the root `.`) that holds a selected file at any depth.
+export function getFoldersWithFiles(files, root) {
+  return new Set(['.', ...foldersOf(files.map((f) => toRel(root, f)))]);
+}
 
+// Folder plan: `files` folders hold selected files of their own and get a
+// full map; `pass-through` folders only hold subfolders (for example Java
+// package prefixes) and get a short map written after their children.
+export function planFolders(relPaths) {
+  const direct = directFoldersOf(relPaths);
+  return [...foldersOf(relPaths)]
+    .sort()
+    .map((folder) => ({
+      folder,
+      kind: direct.has(folder) ? 'files' : 'pass-through',
+    }));
+}
+
+export class StateError extends Error {}
+
+// Returns null when there is no state file. A file that exists but cannot be
+// parsed throws StateError: it must not look like "no state", or the caller
+// re-runs init and silently resets the change baseline.
+export function loadState(root) {
+  const statePath = path.join(root, STATE_DIR, STATE_FILE);
+  let text;
   try {
-    return JSON.parse(readFileSync(statePath, 'utf8'));
-  } catch {
-    return null;
+    text = readFileSync(statePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') return null;
+    throw new StateError(`cannot read ${STATE_DIR}/${STATE_FILE}: ${error.message}`);
   }
+  let state;
+  try {
+    state = JSON.parse(text);
+  } catch (error) {
+    throw new StateError(`${STATE_DIR}/${STATE_FILE} is corrupt: ${error.message}`);
+  }
+  if (!state || typeof state !== 'object' || Array.isArray(state)) {
+    throw new StateError(`${STATE_DIR}/${STATE_FILE} is corrupt: not a JSON object`);
+  }
+  return state;
+}
+
+const CORRUPT_STATE_EXIT = 2;
+
+function reportStateError(error) {
+  console.error(
+    `Error: ${error.message}. Repair it (for example resolve a merge conflict, ` +
+      'or restore it from version control). Do not re-run init: that resets the ' +
+      'change baseline and hides maps that are already stale.',
+  );
+  return CORRUPT_STATE_EXIT;
 }
 
 export function saveState(root, state) {
@@ -328,13 +410,10 @@ export function saveState(root, state) {
   );
 }
 
-export function createEmptyCodemap(folderPath, folderName) {
-  const codemapPath = path.join(folderPath, CODEMAP_FILE);
-  if (existsSync(codemapPath)) return false;
+const SCAFFOLDS = {
+  files: (title) => `# ${title}/
 
-  const content = `# ${folderName}/
-
-<!-- Fixer: Fill in this section with architectural understanding -->
+<!-- codemap: fill each section from the files in this folder -->
 
 ## Responsibility
 
@@ -351,58 +430,70 @@ export function createEmptyCodemap(folderPath, folderName) {
 ## Integration
 
 <!-- How does it connect to other parts of the system? -->
-`;
+`,
+  'pass-through': (title) => `# ${title}/
 
-  writeFileSync(codemapPath, content);
+<!-- codemap: pass-through folder (no mapped files of its own); fill after the child maps exist -->
+
+## Responsibility
+
+<!-- One line: what the subfolders below have in common -->
+
+## Child Maps
+
+<!-- One link per child folder map, with its Responsibility line -->
+`,
+  atlas: (title) => `# Repository Atlas: ${title}
+
+<!-- codemap: root atlas, assembled from the folder maps -->
+
+## Project Responsibility
+
+<!-- The project's purpose in 2-3 sentences, from the root README/manifest -->
+
+## System Entry Points
+
+<!-- Root-level files that start or configure the system -->
+
+## Repository Directory Map
+
+<!-- One row per folder map: directory, Responsibility line, link -->
+`,
+};
+
+// Writes a scaffold unless a codemap.md already exists. `kind` is `files`,
+// `pass-through`, or `atlas` (the root). Returns true when it created one.
+export function createEmptyCodemap(folderPath, title, kind = 'files') {
+  const codemapPath = path.join(folderPath, CODEMAP_FILE);
+  if (existsSync(codemapPath)) return false;
+  writeFileSync(codemapPath, SCAFFOLDS[kind](title));
   return true;
 }
 
-// Every folder (and ancestor) holding one of these relative file paths.
-function foldersOf(relPaths) {
-  const folders = new Set();
-  for (const filePath of relPaths) {
-    const parts = filePath.split('/').slice(0, -1);
-    for (let i = 0; i < parts.length; i++) {
-      folders.add(parts.slice(0, i + 1).join('/'));
-    }
-  }
-  return folders;
-}
-
-function buildState(
-  root,
-  includePatterns,
-  excludePatterns,
-  exceptions,
-  selectedFiles,
-) {
+function hashSelection(root, selectedFiles) {
   const fileHashes = {};
   for (const filePath of selectedFiles) {
-    const relPath = path.relative(root, filePath).replaceAll(path.sep, '/');
-    fileHashes[relPath] = computeFileHash(filePath);
+    fileHashes[toRel(root, filePath)] = computeFileHash(filePath);
   }
+  return fileHashes;
+}
 
-  const folders = getFoldersWithFiles(selectedFiles, root);
-  const folderHashes = {};
-  for (const folder of folders) {
-    folderHashes[folder] = computeFolderHash(folder, fileHashes);
-  }
-
-  const state = {
+// The manifest stores no absolute path: it is meant to be committed, and the
+// root always comes from --root.
+function buildState(includePatterns, excludePatterns, exceptions, fileHashes) {
+  return {
     metadata: {
       version: VERSION,
       last_run: new Date().toISOString(),
-      root,
       include_patterns: includePatterns,
       exclude_patterns: excludePatterns,
       exceptions,
     },
     file_hashes: fileHashes,
-    folder_hashes: folderHashes,
   };
-
-  return { state, folders };
 }
+
+const kindLabel = (kind) => (kind === 'pass-through' ? ' (pass-through)' : '');
 
 export function cmdInit({
   root,
@@ -410,6 +501,7 @@ export function cmdInit({
   exclude = [],
   exception = [],
   rescope = false,
+  dryRun = false,
 }) {
   const resolvedRoot = path.resolve(root);
   if (!existsSync(resolvedRoot) || !statSync(resolvedRoot).isDirectory()) {
@@ -418,14 +510,23 @@ export function cmdInit({
   }
 
   // Re-running init would silently reset the change baseline and absorb any
-  // edits whose maps were never refreshed. Refuse unless re-scoping.
-  const previous = loadState(resolvedRoot);
-  if (previous && !rescope) {
-    console.error(
-      `Error: ${STATE_DIR}/${STATE_FILE} already exists. Use 'changes' + 'update' to refresh, ` +
-        "or 'init --rescope' with the new patterns to change the scope.",
-    );
-    return 1;
+  // edits whose maps were never refreshed. Refuse unless re-scoping. A dry
+  // run writes nothing, so it may preview a rescope.
+  let previous = null;
+  if (!dryRun) {
+    try {
+      previous = loadState(resolvedRoot);
+    } catch (error) {
+      if (error instanceof StateError) return reportStateError(error);
+      throw error;
+    }
+    if (previous && !rescope) {
+      console.error(
+        `Error: ${STATE_DIR}/${STATE_FILE} already exists. Use 'changes' + 'update' to refresh, ` +
+          "or 'init --rescope' with the new patterns to change the scope.",
+      );
+      return 1;
+    }
   }
 
   const includePatterns = include.length ? include : ['**/*'];
@@ -445,179 +546,197 @@ export function cmdInit({
     exceptions,
     gitignore,
   );
+  const selectedRel = selectedFiles.map((f) => toRel(resolvedRoot, f));
 
   console.log(`Selected ${selectedFiles.length} files`);
 
-  const { state, folders } = buildState(
-    resolvedRoot,
+  // Scope mistakes surface here, before any subagent is spawned.
+  for (const pattern of include) {
+    const matcher = new PatternMatcher([pattern]);
+    if (!selectedRel.some((relPath) => matcher.matches(relPath))) {
+      console.log(`Warning: include pattern ${JSON.stringify(pattern)} matched no selected file`);
+    }
+  }
+  const selectedSet = new Set(selectedRel);
+  for (const relPath of exceptions) {
+    if (!selectedSet.has(relPath)) {
+      console.log(
+        `Warning: exception ${JSON.stringify(relPath)} was not selected ` +
+          '(missing, ignored by git, a codemap.md, or under a skipped dot-directory)',
+      );
+    }
+  }
+
+  const plan = planFolders(selectedRel);
+  const passThrough = plan.filter((entry) => entry.kind === 'pass-through');
+  console.log(
+    `\n${plan.length} folders to map (${plan.length - passThrough.length} with files, ` +
+      `${passThrough.length} pass-through) + the root atlas:`,
+  );
+  for (const { folder, kind } of plan) console.log(`  ${folder}/${kindLabel(kind)}`);
+
+  if (dryRun) {
+    console.log('\nDry run: nothing written.');
+    return 0;
+  }
+
+  const state = buildState(
     includePatterns,
     excludePatterns,
     exceptions,
-    selectedFiles,
+    // Rescope keeps the previous baseline: the next `changes` then reports
+    // files that entered the scope as added, files that left it as removed,
+    // and edits made since the last `update` as modified.
+    previous ? (previous.file_hashes ?? {}) : hashSelection(resolvedRoot, selectedFiles),
   );
-
-  if (previous) {
-    // Keep the previous baseline: the next `changes` then reports files that
-    // entered the scope as added, files that left it as removed, and edits
-    // made since the last `update` as modified.
-    state.file_hashes = previous.file_hashes ?? {};
-    state.folder_hashes = previous.folder_hashes ?? {};
-  }
 
   saveState(resolvedRoot, state);
   console.log(
     previous
-      ? `Rescoped ${STATE_DIR}/${STATE_FILE} (previous baseline kept; run 'changes' for the scope delta)`
-      : `Created ${STATE_DIR}/${STATE_FILE}`,
+      ? `\nRescoped ${STATE_DIR}/${STATE_FILE} (previous baseline kept; run 'changes' for the scope delta)`
+      : `\nCreated ${STATE_DIR}/${STATE_FILE}`,
   );
 
   let created = 0;
-  for (const folder of folders) {
-    const folderPath =
-      folder === '.' ? resolvedRoot : path.join(resolvedRoot, folder);
-    const folderName = folder === '.' ? path.basename(resolvedRoot) : folder;
-    if (createEmptyCodemap(folderPath, folderName)) created++;
+  if (createEmptyCodemap(resolvedRoot, path.basename(resolvedRoot), 'atlas')) created++;
+  for (const { folder, kind } of plan) {
+    if (createEmptyCodemap(path.join(resolvedRoot, folder), folder, kind)) created++;
   }
 
   console.log(
-    `Created ${created} empty codemap.md scaffolds (${folders.size - created} existing kept)`,
+    `Created ${created} empty codemap.md scaffolds (${plan.length + 1 - created} existing kept)`,
   );
   return 0;
 }
 
-export function cmdChanges({ root }) {
-  const resolvedRoot = path.resolve(root);
-  const state = loadState(resolvedRoot);
-  if (!state) {
-    console.error("No codemap state found. Run 'init' first.");
-    return 1;
-  }
-
+// Loads the state and rescans with its frozen patterns.
+function rescan(root) {
+  const state = loadState(root);
+  if (!state) return { state: null };
   const metadata = state.metadata ?? {};
   const includePatterns = metadata.include_patterns ?? ['**/*'];
   const excludePatterns = metadata.exclude_patterns ?? [];
   const exceptions = metadata.exceptions ?? [];
-  const gitignore = loadGitignore(resolvedRoot);
-
-  const currentFiles = selectFiles(
-    resolvedRoot,
+  const selectedFiles = selectFiles(
+    root,
     includePatterns,
     excludePatterns,
     exceptions,
-    gitignore,
+    loadGitignore(root),
   );
+  return { state, includePatterns, excludePatterns, exceptions, selectedFiles };
+}
 
-  const currentHashes = Object.fromEntries(
-    currentFiles.map((filePath) => [
-      path.relative(resolvedRoot, filePath).replaceAll(path.sep, '/'),
-      computeFileHash(filePath),
-    ]),
-  );
-
-  const savedHashes = state.file_hashes ?? {};
-  const currentPaths = new Set(Object.keys(currentHashes));
-  const savedPaths = new Set(Object.keys(savedHashes));
-
-  const added = [...currentPaths]
-    .filter((filePath) => !savedPaths.has(filePath))
-    .sort();
-  const removed = [...savedPaths]
-    .filter((filePath) => !currentPaths.has(filePath))
-    .sort();
-  const modified = [...currentPaths]
-    .filter((filePath) => savedPaths.has(filePath))
-    .filter((filePath) => currentHashes[filePath] !== savedHashes[filePath])
-    .sort();
-
-  if (!added.length && !removed.length && !modified.length) {
-    console.log('No changes detected.');
-    return 0;
+function withState(root, action) {
+  const resolvedRoot = path.resolve(root);
+  let scan;
+  try {
+    scan = rescan(resolvedRoot);
+  } catch (error) {
+    if (error instanceof StateError) return reportStateError(error);
+    throw error;
   }
-
-  if (added.length) {
-    console.log(`\n${added.length} added:`);
-    for (const filePath of added) console.log(`  + ${filePath}`);
+  if (!scan.state) {
+    console.error("No codemap state found. Run 'init' first.");
+    return 1;
   }
+  return action(resolvedRoot, scan);
+}
 
-  if (removed.length) {
-    console.log(`\n${removed.length} removed:`);
-    for (const filePath of removed) console.log(`  - ${filePath}`);
-  }
+const printFolders = (title, folders, plan) => {
+  if (!folders.length) return;
+  console.log(`\n${folders.length} ${title}:`);
+  for (const folder of folders) console.log(`  ${folder}/${kindLabel(plan.get(folder))}`);
+};
 
-  if (modified.length) {
-    console.log(`\n${modified.length} modified:`);
-    for (const filePath of modified) console.log(`  ~ ${filePath}`);
-  }
+export function cmdChanges({ root }) {
+  return withState(root, (resolvedRoot, { state, selectedFiles }) => {
+    const currentHashes = hashSelection(resolvedRoot, selectedFiles);
+    const savedHashes = state.file_hashes ?? {};
+    const currentPaths = new Set(Object.keys(currentHashes));
+    const savedPaths = new Set(Object.keys(savedHashes));
 
-  // Work order. The root (`.`) is never listed: its codemap.md is the atlas,
-  // re-assembled after the folder maps (root-level files are its entry points).
-  const currentFolders = foldersOf(currentPaths);
-  const savedFolders = foldersOf(savedPaths);
-  const emptied = [...savedFolders]
-    .filter((folder) => !currentFolders.has(folder))
-    .sort();
-  const affected = [...foldersOf([...added, ...removed, ...modified])]
-    .filter((folder) => currentFolders.has(folder))
-    .sort();
-  const fresh = affected.filter((folder) => !savedFolders.has(folder));
+    const added = [...currentPaths].filter((p) => !savedPaths.has(p)).sort();
+    const removed = [...savedPaths].filter((p) => !currentPaths.has(p)).sort();
+    const modified = [...currentPaths]
+      .filter((p) => savedPaths.has(p) && currentHashes[p] !== savedHashes[p])
+      .sort();
 
-  console.log(`\n${affected.length} folders affected:`);
-  for (const folder of affected) console.log(`  ${folder}/`);
+    if (!added.length && !removed.length && !modified.length) {
+      console.log('No changes detected.');
+      return 0;
+    }
 
-  if (fresh.length) {
-    console.log(`\n${fresh.length} new folders (no previous map; write in full):`);
-    for (const folder of fresh) console.log(`  ${folder}/`);
-  }
+    if (added.length) {
+      console.log(`\n${added.length} added:`);
+      for (const filePath of added) console.log(`  + ${filePath}`);
+    }
+    if (removed.length) {
+      console.log(`\n${removed.length} removed:`);
+      for (const filePath of removed) console.log(`  - ${filePath}`);
+    }
+    if (modified.length) {
+      console.log(`\n${modified.length} modified:`);
+      for (const filePath of modified) console.log(`  ~ ${filePath}`);
+    }
 
-  if (emptied.length) {
-    console.log(
-      `\n${emptied.length} emptied folders (no selected files left; codemap.md is orphaned):`,
+    // Work order. The root (`.`) is never listed: its codemap.md is the atlas,
+    // re-assembled after the folder maps (root-level files are its entry points).
+    const plan = new Map(
+      planFolders([...currentPaths]).map(({ folder, kind }) => [folder, kind]),
     );
-    for (const folder of emptied) console.log(`  ${folder}/`);
-  }
+    const savedFolders = foldersOf(savedPaths);
+    const changed = [...added, ...removed, ...modified];
+    const direct = [...directFoldersOf(changed)].filter((f) => plan.has(f)).sort();
+    const directSet = new Set(direct);
+    const ancestors = [...foldersOf(changed)]
+      .filter((f) => plan.has(f) && !directSet.has(f))
+      .sort();
+    const fresh = [...direct, ...ancestors].filter((f) => !savedFolders.has(f)).sort();
+    const emptied = [...savedFolders].filter((f) => !plan.has(f)).sort();
 
-  console.log(
-    '\nRoot atlas: re-assemble ./codemap.md after refreshing the folders above.',
-  );
-  return 0;
+    printFolders('folders with direct changes (refresh these maps)', direct, plan);
+    printFolders(
+      "ancestor folders (no direct change; update only if a child's Responsibility or Integration line changed, or a child map was added or removed)",
+      ancestors,
+      plan,
+    );
+    printFolders('new folders (no previous map; write in full)', fresh, plan);
+    printFolders(
+      'emptied folders (no selected files left; codemap.md is orphaned)',
+      emptied,
+      plan,
+    );
+
+    console.log(
+      '\nRoot atlas: re-assemble ./codemap.md after refreshing the folders above.',
+    );
+    return 0;
+  });
 }
 
 export function cmdUpdate({ root }) {
-  const resolvedRoot = path.resolve(root);
-  const state = loadState(resolvedRoot);
-  if (!state) {
-    console.error("No codemap state found. Run 'init' first.");
-    return 1;
-  }
-
-  const metadata = state.metadata ?? {};
-  const includePatterns = metadata.include_patterns ?? ['**/*'];
-  const excludePatterns = metadata.exclude_patterns ?? [];
-  const exceptions = metadata.exceptions ?? [];
-  const gitignore = loadGitignore(resolvedRoot);
-
-  const selectedFiles = selectFiles(
-    resolvedRoot,
-    includePatterns,
-    excludePatterns,
-    exceptions,
-    gitignore,
+  return withState(
+    root,
+    (resolvedRoot, { includePatterns, excludePatterns, exceptions, selectedFiles }) => {
+      saveState(
+        resolvedRoot,
+        buildState(
+          includePatterns,
+          excludePatterns,
+          exceptions,
+          hashSelection(resolvedRoot, selectedFiles),
+        ),
+      );
+      console.log(
+        `Updated ${STATE_DIR}/${STATE_FILE} with ${selectedFiles.length} files`,
+      );
+      return 0;
+    },
   );
-
-  const { state: nextState } = buildState(
-    resolvedRoot,
-    includePatterns,
-    excludePatterns,
-    exceptions,
-    selectedFiles,
-  );
-
-  saveState(resolvedRoot, nextState);
-  console.log(
-    `Updated ${STATE_DIR}/${STATE_FILE} with ${selectedFiles.length} files`,
-  );
-  return 0;
 }
+
+const BOOLEAN_FLAGS = { '--rescope': 'rescope', '--dry-run': 'dryRun' };
 
 export function parseArgs(argv) {
   const [command, ...rest] = argv;
@@ -628,8 +747,8 @@ export function parseArgs(argv) {
     const value = rest[i + 1];
 
     if (!arg?.startsWith('--')) continue;
-    if (arg === '--rescope') {
-      options.rescope = true;
+    if (BOOLEAN_FLAGS[arg]) {
+      options[BOOLEAN_FLAGS[arg]] = true;
       continue;
     }
     if (value === undefined || value.startsWith('--')) {
@@ -657,7 +776,7 @@ export function main(argv = process.argv.slice(2)) {
 
     if (!command || !options.root) {
       console.error(
-        'Usage: codemap.mjs <init|changes|update> --root /path [--include glob] [--exclude glob] [--exception path] [--rescope]',
+        'Usage: codemap.mjs <init|changes|update> --root /path [--include glob] [--exclude glob] [--exception path] [--rescope] [--dry-run]',
       );
       return 1;
     }

@@ -9,7 +9,9 @@ root-level files are covered by System Entry Points, not by a folder map.
 
 ## Root `codemap.md`
 
-Three sections:
+`init` scaffolds it with the atlas headings below; they stay in English (the
+canonical keys), while the prose follows the artifact language
+(`content-spec.md`, "Artifact language"). Three sections:
 
 ### 1. Project Responsibility
 
@@ -24,9 +26,9 @@ and its role.
 
 ### 3. Repository Directory Map
 
-For **every** folder that has a `codemap.md`, extract that map's
-**Responsibility** summary and list it with a relative link to the full map.
-A table keeps it scannable:
+For **every** folder that has a `codemap.md` (pass-through folders
+included), extract that map's **Responsibility** summary and list it with a
+relative link to the full map. A table keeps it scannable:
 
 | Directory | Responsibility Summary | Detailed Map |
 | --- | --- | --- |
@@ -70,7 +72,9 @@ Then, in the target file:
 - It has no `## Repository Map` section — **append** the section below.
 
 Report the target file and the appended section (or "já registrado") in the
-final answer.
+run report. The heading `## Repository Map` stays literal (it is the
+idempotency key); write the body in the artifact language — the English text
+below is the reference wording.
 
 ```markdown
 ## Repository Map
@@ -103,7 +107,7 @@ for a retail storefront.
 - `package.json`: dependency manifest and build scripts.
 - `config/schema.json`: user configuration schema.
 
-## Repository Directory Map (Aggregated)
+## Repository Directory Map
 | Directory | Responsibility Summary | Detailed Map |
 |-----------|------------------------|--------------|
 | `src/orders/` | Order lifecycle state machine and pricing rules. | [View Map](src/orders/codemap.md) |

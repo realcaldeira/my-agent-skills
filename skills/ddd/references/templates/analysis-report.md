@@ -1,16 +1,21 @@
 # Template — Analysis report (`analyze` / `review`)
 
-Output language: pt-BR. Replace every placeholder; delete nothing.
+Output language: pt-BR. Replace every placeholder; delete nothing (except as
+the `review` scoping below allows). In `analyze`, write "Nenhum achado" under
+an empty category. Severity rubric and step 0 (is DDD warranted?) live in
+`code-review-heuristics.md`.
 
 ```markdown
 # Relatório de análise DDD — <projeto>
 
 ## Resumo executivo
 - <3–5 bullets: achados mais importantes>
-- Grau geral de aderência a DDD: <alto/médio/baixo> — <1 frase>
+- Adequação do modelo à complexidade do domínio: <alta/média/baixa> — <1 frase>
 
 ## Escopo analisado
 - <commit/range/arquivos; o que ficou de fora e por quê>
+- Classificação dos módulos: <módulo — core/supporting/generic — evidência>
+- Premissas: <o que foi assumido sem confirmação do usuário, ou "nenhuma">
 
 ## Achados por categoria
 
@@ -55,6 +60,15 @@ Output language: pt-BR. Replace every placeholder; delete nothing.
 "Plano de refatoração" with "Correções recomendadas" (a short, ordered fix
 list); skip repo-wide context mapping unless the diff crosses boundaries.
 
+**`review` target:** no argument → uncommitted changes plus the branch diff
+against the merge-base with the default branch (local git reads only). PR
+number/URL → ask the user to check out the branch or paste the diff; run
+`gh pr diff <n>` only after the user confirms (network call).
+
+**Where heuristic sections land:** Anemic domain → Entidades e Value Objects
+(+ Anti-padrões table); Persistence influence → Agregados e invariantes;
+Tests as evidence → under the category of the rule being tested.
+
 ## Definition of Done
 
 - [ ] Every finding has severity + `path:line` evidence + source tag + fix.
@@ -62,4 +76,6 @@ list); skip repo-wide context mapping unless the diff crosses boundaries.
       `[sem fonte verificada]` or removed.
 - [ ] At least one positive finding (or an explicit "nenhum encontrado").
 - [ ] Phase 1 fits one sprint.
-- [ ] Output in pt-BR; template sections preserved in order.
+- [ ] Severities follow the rubric; supporting/generic CRUD not flagged as anemic.
+- [ ] Output in pt-BR; template sections preserved in order (`review`: only
+      touched categories).

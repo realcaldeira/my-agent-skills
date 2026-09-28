@@ -8,8 +8,8 @@ hash-based (`.agent/codemap.json`), so refreshes only touch folders whose
 files changed, and the map is registered idempotently in the project's
 agent-instruction file (`CLAUDE.md` first, `AGENTS.md` when that is what the
 harness loads) so agents discover it automatically. Modes: `init`, `update`,
-`explain`. This is an expensive operation (one subagent per folder) and runs
-only on explicit request.
+`explain`. This is an expensive operation (one subagent per folder with files
+of its own) and runs only on explicit request.
 
 ## Provenance and attribution
 
@@ -30,9 +30,10 @@ hardcoded skill paths → `${CLAUDE_SKILL_DIR}/scripts/codemap.mjs`;
 product-specific agent names (Fixer/Orchestrator) → per-folder subagents /
 orchestrator; product-specific claims about auto-loading → an explicit
 instruction-file resolution order; source-code examples → generic examples.
-The legacy state-file migration detail was dropped from the docs (the script
-keeps its one-shot rename for old states). The tests were ported from bun to
-`node:test`.
+The upstream legacy state-file rename (`cartography.json`) was removed: after
+the move to `.agent/` it looked for a path nothing ever wrote. The manifest no
+longer stores the absolute root or the unused `folder_hashes`. The tests were
+ported from bun to `node:test`.
 
 ## Layout
 
@@ -42,7 +43,7 @@ references/
   content-spec.md                 # folder map sections + include/exclude rules
   state-and-changes.md            # .agent/codemap.json manifest, file selection, init/changes/update
   root-atlas.md                   # root codemap.md + CLAUDE.md/AGENTS.md registration
-  templates/                      # codemap-folder, codemap-root, teaching-card
+  templates/                      # run-report, teaching-card (chat); codemap-folder, codemap-root (file specs)
 scripts/
   codemap.mjs                     # state + change detection (Node ≥ 18)
   codemap.test.mjs                # node:test suite for the script
@@ -70,9 +71,11 @@ into `~/.agents/skills` — see the repo [README](../../README.md).
 - **Node ≥ 18** runs `scripts/codemap.mjs`. Tests:
   `node --test skills/codemap/scripts/codemap.test.mjs` (pass the file, not
   the directory — Node ≥ 22 treats the argument as a glob).
-- **Subagents.** The fan-out pattern is portable: one subagent per folder,
-  orchestrator consolidates.
-  Harness note: Claude Code `Agent` tool (formerly `Task`); other harnesses
+- **Subagents.** The fan-out pattern is portable: leaf-first, one subagent
+  per folder with files of its own; the orchestrator writes pass-through
+  maps and the atlas, and consolidates.
+  Harness note: Claude Code `Agent` tool (formerly `Task`) with
+  `general-purpose` subagents (`Explore` cannot write files); other harnesses
   expose an equivalent (`task`) — keep the pattern, swap the name.
 - **Script path.** SKILL.md names the script as
   `${CLAUDE_SKILL_DIR}/scripts/codemap.mjs`; other harnesses resolve
@@ -82,23 +85,32 @@ into `~/.agents/skills` — see the repo [README](../../README.md).
   `.claude/CLAUDE.md`) when present — Claude Code ignores `AGENTS.md` when a
   `CLAUDE.md` exists and does not import it — otherwise `AGENTS.md`; if
   neither exists the agent asks before creating one.
-- **Language.** Instructions/references in English; user-facing output in
-  pt-BR (mirror the user's language otherwise).
+- **Language.** Instructions/references in English; chat output in pt-BR
+  (mirror the user's language otherwise). Files committed into the mapped
+  repo (maps, atlas, registration) follow that repo's documentation language,
+  with fixed English headings.
 
 ## Safety note
 
 Side effects, all on an explicit `init` / `update` request only:
 
-- **File writes in the mapped repo:** `.agent/codemap.json` and `codemap.md`
-  files (scaffolds never overwrite existing maps); an appended
-  `## Repository Map` section in the resolved instruction file.
+- **File writes in the mapped repo:** `.agent/codemap.json` (relative paths
+  and hashes only) and `codemap.md` files (scaffolds never overwrite existing
+  maps); an appended `## Repository Map` section in the resolved instruction
+  file. `init --dry-run` writes nothing. Nothing is committed: the run report
+  recommends committing the maps, the registration and `.agent/codemap.json`
+  together ([state-and-changes.md](references/state-and-changes.md), "Files
+  this skill creates").
 - **Confirm-first:** creating an instruction file that does not exist, and
   deleting the orphan `codemap.md` of a folder that no longer has mapped files
-  (its own confirmation). A second `init` refuses to reset existing state;
-  `init --rescope` changes the scope while keeping the baseline.
-- **Subprocess:** inside a git work tree the script runs
-  `git ls-files` (read-only, `core.fsmonitor` disabled) to list files. No
-  other git command, no network, no credentials.
+  (its own confirmation). A second `init` refuses to reset existing state
+  (and a corrupt state file stops every command with exit 2 instead of
+  looking missing); `init --rescope` changes the scope while keeping the
+  baseline.
+- **Subprocess:** the script runs `git ls-files` and `git check-ignore`
+  (read-only, `core.fsmonitor` disabled) to list files and to detect a root
+  ignored by its enclosing repo. No other git command, no network, no
+  credentials.
 - **Running code:** none — the script hashes files; it never executes code
   from the mapped repo.
 - **Untrusted content:** repository files (including `CLAUDE.md`,

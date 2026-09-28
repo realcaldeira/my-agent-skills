@@ -2,7 +2,8 @@
 
 Output language: pt-BR. Canonical terms stay in English (seam, leverage,
 locality, depth, adapter), Portuguese equivalent on first use. Replace every
-placeholder; delete nothing. Present designs sequentially so the user can
+placeholder; delete only sections marked "(se houver)" / "(se fizer sentido)"
+(and the matching table column) when they do not apply. Present designs sequentially so the user can
 absorb each one, then compare. Be opinionated — the user wants a strong read,
 not a menu.
 
@@ -42,15 +43,19 @@ not a menu.
 - **Híbrido (se fizer sentido):** <que elementos de desenhos diferentes se
   combinam, e como>
 - **Próximo passo:** <incremento de uma sprint para implementar a escolha>
+```
 
 ## Definition of Done
-- [ ] Cada desenho segue o contrato de saída por subagente (interface com
-      invariantes/ordenação/erros, exemplo de uso, o que fica atrás da seam,
-      estratégia de dependência, trade-offs)
-- [ ] Comparação por depth/leverage, locality e posicionamento da seam
-- [ ] Recomendação opinada (ou híbrido) — sem "depende" como resposta final
-- [ ] Nomes vindos do glossário do domínio; vocabulário do skill sem
-      substitutos proibidos
-- [ ] Próximo passo cabe em uma sprint
-- [ ] Saída em pt-BR; seções do template preservadas na ordem
-```
+
+Self-check before answering; not part of the output.
+
+- [ ] Every design follows the per-subagent output contract (interface with
+      invariants/ordering/errors, usage example, what sits behind the seam,
+      dependency strategy, trade-offs).
+- [ ] Comparison by depth/leverage, locality, and seam placement.
+- [ ] Opinionated recommendation (or hybrid) — no "it depends" as the final
+      answer.
+- [ ] Names come from the domain glossary; no forbidden substitutes from
+      `vocabulary.md`.
+- [ ] Next step fits in one sprint.
+- [ ] Output in pt-BR; template sections kept in order.

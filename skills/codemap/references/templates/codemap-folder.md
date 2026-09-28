@@ -1,35 +1,46 @@
-# Template — Folder codemap (`init` / `update`)
+# Artifact spec — Folder codemap (`init` / `update`)
 
-Output language: pt-BR (mirror the user if they write in another language).
-Canonical section names from `references/content-spec.md` may stay in English
-when the `init` scaffold already uses them (`## Design`, `## Flow`,
-`## Integration` are the same sections).
+A file committed into the mapped repository, not a chat reply (the chat
+reply is `run-report.md`). Headings: the canonical English ones the `init`
+scaffold writes. Prose: the artifact language (`references/content-spec.md`,
+"Artifact language"). The placeholders below are instructions, not text to
+copy.
 
 ```markdown
-# <caminho-da-pasta>/
+# <folder-path>/
 
-## Responsabilidade (Responsibility)
-<papel específico desta pasta no sistema, em termos de engenharia de
-software — ex. Service Layer, Data Access Object, Middleware. 1–2 frases.>
+## Responsibility
+<this folder's specific role in standard software-engineering terms, e.g.
+Service Layer, Data Access Object, Middleware. 1–2 sentences.>
 
-## Padrões de Projeto (Design Patterns)
-- <padrão nomeado (Factory, Strategy, Repository...)> — <abstração/interface
-  que o carrega, com nomes reais de arquivos>
+## Design
+- <named pattern (Factory, Strategy, Repository...)> — <the abstraction or
+  interface that carries it, with real file names>
 
-## Fluxo de Dados e Controle (Data & Control Flow)
-1. <entrada de dados → chamada concreta>
-2. <transição de estado / processamento>
-3. <saída / efeito colateral>
+## Flow
+1. <data entry → concrete call>
+2. <state transition / processing>
+3. <output / side effect>
 
-## Pontos de Integração (Integration Points)
-- Consumido por: <módulos chamadores>
-- Depende de: <dependências — hooks, eventos, endpoints, com nomes técnicos>
+## Integration
+- Consumed by: <calling modules>
+- Depends on: <dependencies — hooks, events, endpoints, by technical name>
 ```
+
+(The two fixed bullets under Integration are written in the artifact
+language, e.g. "Consumido por:" / "Depende de:" in a pt-BR repo.)
+
+Pass-through folder (no selected files of its own): only `## Responsibility`
+(one line) and `## Child Maps` (one link per child map with its quoted
+Responsibility line), written by the orchestrator after the children —
+see `references/content-spec.md`, "Pass-through folders".
 
 ## Definition of Done
 
-- [ ] All four sections present and non-empty; headings match the file's
-      existing convention (long names or the init scaffold's short aliases).
+- [ ] Headings are exactly the canonical ones (`Responsibility`, `Design`,
+      `Flow`, `Integration`; pass-through: `Responsibility`, `Child Maps`),
+      all non-empty; the scaffold's `<!-- codemap: ... -->` comments removed.
+- [ ] Prose in the artifact language recorded for this run.
 - [ ] Responsibility is 1–2 sentences in standard SE terms — this exact line
       is what the root atlas aggregates.
 - [ ] Patterns are named, not implied; abstractions/interfaces identified by
@@ -39,7 +50,7 @@ software — ex. Service Layer, Data Access Object, Middleware. 1–2 frases.>
 - [ ] Integration lists both consumers and dependencies by technical name
       (hooks, events, endpoints).
 - [ ] Every claim is backed by files actually read in this folder — no
-      invention from folder names; otherwise "evidência insuficiente".
+      invention from folder names; otherwise the insufficient-evidence marker.
 - [ ] No fact duplicated from a sibling/parent map — cross-link instead.
 - [ ] Map only; no grades, no refactoring proposals.
 - [ ] No agent-directed instructions, shell commands, or reader-directed

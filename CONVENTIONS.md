@@ -123,16 +123,29 @@ note, worded as:
 - **Anti-hallucination rule:** cite only what is actually in the references.
   If a claim is not backed there, either drop it or label it
   `[sem fonte verificada]`. Never invent chapter numbers.
+- Pointing at the skill's own reference is always allowed:
+  `[ref: <file> §<section>]`.
+- Unverified markers are not interchangeable: `[sem fonte verificada]` = a
+  method claim with no source; `evidência insuficiente` = missing evidence in
+  the code under analysis; `[não verificado]` = an artifact or state the agent
+  did not observe.
 
 ## 7. Output contracts
 
-- Each mode has exactly one template in `references/templates/`.
-- Templates define sections, severity scale (`CRÍTICO/ALTO/MÉDIO/BAIXO`), and
-  evidence format (`file:line` + snippet).
-- Reports end with (a) phased next steps sized to one sprint and (b) a
-  positive-findings section when the mode audits existing work.
-- Every report ends with a **Definition of Done** self-check the model applies
-  before answering.
+- Each mode declares its output in the mode table: one template (the default),
+  several templates used in sequence (listed in order, e.g. pass 1 then final
+  report), or "none — raw output" for text-only modes.
+- Templates define sections, the severity scale, and the evidence format
+  (`file:line` + snippet). The default scale is `CRÍTICO/ALTO/MÉDIO/BAIXO`,
+  graded by impact; a skill may define its own scale (e.g. a fact-check
+  ladder) if the router declares it and one reference owns it.
+- Reports that produce a backlog of several changes (audits, migration or
+  deepening plans) end with phased next steps whose first phase fits one
+  sprint. Other modes end with concrete next actions, no sprint sizing.
+- Modes that audit existing work include a positive-findings section.
+- Every template ends with a **Definition of Done**: an English self-check the
+  model applies before answering, not rendered to the user unless the template
+  deliberately places a checklist inside the output.
 
 ## 8. Language
 
@@ -140,6 +153,10 @@ note, worded as:
 - User-facing output: pt-BR (canonical technical terms may stay in English,
   Portuguese equivalent on first use).
 - If the user writes in another language, mirror the user.
+- Text written into a repository or posted to an external thread (commit
+  messages, PR/issue comments, changelog entries, code comments, generated
+  docs) uses the language that target already uses; the chat report stays
+  pt-BR.
 
 ## 9. Safety and scope
 
@@ -181,6 +198,9 @@ Checked by the author:
 - [ ] Out-of-scope list and confirmation gates present (§9).
 - [ ] Ported skill: `NOTICE.md` lists sources and upstream license texts.
 - [ ] Symlink install documented in README; skill loads in the target harness.
+- [ ] Routing cases added to `evals/routing.json` (should / should-not
+      trigger, including pt-BR prompts) and checked in a fresh session.
+- [ ] `metadata.version` bumped and a `CHANGELOG.md` entry added.
 
 ## 11. Agent-instruction file
 

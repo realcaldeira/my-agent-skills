@@ -2,9 +2,8 @@
 
 The five non-negotiable principles of behavior-preserving simplification,
 in full. The router carries the one-liners; this file carries the substance.
-Severity context for findings: a violation of Principle 1 is `CRÍTICO`
-(behavior risk if changed carelessly); Principles 2–5 map to `ALTO`/`MÉDIO`/
-`BAIXO` depending on how much comprehension is at stake.
+Severity and change risk are defined once, in `simplification-signals.md`
+(Severity and change risk).
 
 ---
 
@@ -14,16 +13,31 @@ Don't change what the code does — only how it expresses it. All inputs,
 outputs, side effects, error behavior, and edge cases must remain identical.
 If you're not sure a simplification preserves behavior, don't make it.
 
-**Behavior-parity questions — ask all four before every change:**
+**Behavior-parity questions.** This section is the only owner of the
+questions and of when they are asked.
+
+*Before each change (reasoning gate):*
 
 1. Does this produce the same output for every input?
 2. Does this maintain the same error behavior?
 3. Does this preserve the same side effects and ordering?
-4. Do all existing tests still pass without modification?
 
-A "no" or an "I don't know" to any of the four stops the change. Either gather
-more context (`simplification-signals.md`, understand-first questions) or
-report the candidate without applying it.
+*After each change (evidence gate):*
+
+4. Do all existing tests still pass with no change to assertions, expected
+   values, fixtures, or snapshots?
+
+A "no" or an "I don't know" to questions 1–3 stops the change before it is
+made: gather more context (`simplification-signals.md`, understand-first
+questions) or report the candidate without applying it. A "no" to question 4
+means behavior changed: revert your own edit (`verification.md`, revert
+discipline). When no tests cover the target, question 4 cannot be answered;
+follow the no-test-oracle branch in `verification.md`.
+
+**Test edits.** Mechanical reference updates are allowed — renamed
+identifiers, updated call sites, moved imports, mock or spy targets — and
+each one is listed in the report. Any edit to an assertion, expected value,
+fixture, or snapshot is a behavior change, not a simplification.
 
 What "behavior" covers, exhaustively:
 
@@ -34,6 +48,12 @@ What "behavior" covers, exhaustively:
 - Side effects: I/O, logging, mutation of shared state, and their *ordering*.
 - Non-functional behavior that callers rely on: evaluation order, laziness vs.
   eagerness, idempotency, thread-safety guarantees stated in the contract.
+- **Public interface.** Exported or public symbols of a published package,
+  and symbols reachable via reflection, config, DI, or framework convention
+  (routes, handlers, pages), are report-only in apply mode — renaming,
+  splitting, collapsing, or deleting them included. Change one only when
+  every caller is in this repo and updated in the same diff and the user
+  confirms, and flag the change as breaking in the report.
 
 ## 2. Follow project conventions
 
@@ -76,54 +96,37 @@ Guard against over-simplification. Watch for:
   (`elapsedDays`, `isEligible`) documents intent; collapsing it back into a
   raw expression deletes the documentation.
 - Don't merge unrelated logic into one larger function.
-- Don't remove abstractions that serve testability or extensibility — a seam
-  that lets tests inject a fake is doing real work even when production has
-  one implementation.
+- Don't remove abstractions that serve testability or extensibility actually
+  exercised today — a seam that lets tests inject a fake is doing real work
+  even when production has one implementation. Extensibility that nothing
+  uses yet is speculative (`simplification-signals.md`, signal 11).
 - Don't optimize for line count over comprehension.
+
+**Rationalizations to reject:**
+
+- "This abstraction might be useful later" — speculative generality; keep
+  only what a caller or a test uses today.
+- "Fewer lines is simpler" — comprehension time is the measure (§3).
+- "Tests still pass, so it's fine" — tests can be incomplete; questions 1–3
+  come first.
 
 ## 5. Scope to what changed
 
-Default to simplifying recently modified code. Avoid unrelated drive-by
+Default to simplifying recently modified code (scope resolution order: router
+Engagement rules). Avoid unrelated drive-by
 refactors unless explicitly asked. A simplification PR that also "improves"
 four untouched modules buries the reviewable change and breaks the
 bisectability of history.
 
 ---
 
-## When this skill applies
+Out of scope and the citation vocabulary: the router (`SKILL.md`, Engagement
+rules and Citation rules).
 
-- After a feature is working and tests pass, but the implementation feels
-  heavier than it needs to be.
-- During code review when readability or complexity issues are flagged.
-- Deeply nested logic, long functions, or unclear names in code you own.
-- Code written under time pressure, now being hardened.
-- Related logic scattered across files that should be consolidated.
-- After merging changes that introduced duplication or inconsistency.
+## Citations
 
-## When NOT to apply (out of scope)
-
-- **Code already clean and readable** — don't simplify for the sake of it.
-- **Code you don't understand yet** — comprehend before you simplify.
-- **Performance-critical code** where the "simpler" version would be
-  measurably slower. Measure first; if the simpler form is slower, keep the
-  complex one and say why in the report.
-- **Code about to be rewritten entirely** — simplifying throwaway code wastes
-  effort.
-- **Feature changes** — behavior-preserving only. New behavior is a different
-  task.
-- **Style-only churn** — reformatting, import reordering, renaming for taste.
-- **Module/interface redesign** — route to the `improve-codebase-architecture`
-  skill instead. Simplification operates inside the existing design.
-
-## Citations used in this skill
-
-- `[Osmani]` — Addy Osmani, code simplification / agent-skills material
-  (the upstream source of this skill's methodology).
-- `[Fowler]` — martinfowler.com refactoring catalog and related essays.
-- `[Feathers]` — Michael Feathers, *Working Effectively with Legacy Code*.
-- `[prática pós-2020]` — community practice after the books; add a source URL
-  when possible.
-
-Claims in this file are the skill's own operating rules; cite `[Osmani]` when
-restating the methodology's origin, and use the other tags only where the
-loaded references actually back the claim.
+- `[Osmani]` — the five principles, the four parity questions, and the
+  first two rationalizations to reject (upstream methodology).
+- `[Feathers]` — seams worth keeping for testability (principle 4).
+- The question-timing split, the test-edit rule, and the public-interface
+  rule are this skill's own operating rules.

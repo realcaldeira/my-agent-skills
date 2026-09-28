@@ -15,7 +15,10 @@ skills/<skill-name>/scripts/        # optional helper scripts
 
 State artifacts produced by skills during use live under `.agent/` in the target
 project (manifests, worktrees, cloned dependency sources) — each skill documents
-its own files and ignore rules.
+its own files and ignore rules. `.gitignore` does not stop every tool: test
+runners and linters that ignore it (Jest, Vitest, ESLint flat config, IDE
+indexers) can pick up nested checkouts under `.agent/`. The skills that create
+them offer a confirm-first exclusion for those tools.
 
 ## Install (Claude Code)
 
@@ -83,6 +86,23 @@ value object) with the Portuguese equivalent on first use.
   `${CLAUDE_SKILL_DIR}/scripts/…` (Claude Code substitutes the variable inside
   SKILL.md); other harnesses resolve `scripts/` against the directory that
   contains SKILL.md.
+
+## Evals
+
+`evals/routing.json` lists prompts (pt-BR and English) with the skill that
+should load first, or `none`. Run them against a headless Claude Code session:
+
+```sh
+node scripts/check-routing.mjs                        # all cases, default model
+node scripts/check-routing.mjs --only codemap         # one skill
+```
+
+Use the model you actually work with: small models (e.g. haiku) rarely call
+the Skill tool in this setup and score low for reasons unrelated to the
+descriptions. Last run (2026-09-28, default model): 32/32.
+
+Each case is a short session with only the Skill tool enabled (no MCP, no
+file access), so it costs tokens but cannot change anything.
 
 ## Authoring rules
 

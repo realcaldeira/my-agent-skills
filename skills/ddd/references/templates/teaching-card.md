@@ -6,7 +6,7 @@ equivalent on first use.
 ```markdown
 ## <Conceito>
 
-**Definição (Evans):** <paráfrase fiel + citação, ex. `[Evans Reference]`>
+**Definição (<fonte>):** <paráfrase fiel + tag do vocabulário de citação, ex. `[Evans Reference]`>
 
 **Por que importa:** <o problema que resolve — 2–3 frases>
 
@@ -19,9 +19,9 @@ equivalent on first use.
 **Exemplo agnóstico:**
 <pseudocódigo curto, sem framework>
 
-**Relaciona-se com:** <outros conceitos — links para as referências>
+**Relaciona-se com:** <outros conceitos, pelo nome>
 
-**Aprofundar:** <referência deste skill>
+**Aprofundar:** <livro/capítulo ou fonte pública do vocabulário de citação, ex. `[IDDD ch.10]`>
 
 **Fontes:** <tags usadas>
 ```
@@ -29,6 +29,8 @@ equivalent on first use.
 ## Definition of Done
 
 - [ ] Definition cites a loaded reference; no invented quotes or chapters.
+- [ ] Source label matches the concept's origin (not "Evans" by default); no
+      internal skill file names in the output.
 - [ ] "Quando NÃO usar" is present and concrete.
 - [ ] Example is short and stack-agnostic (no Spring/EF/Django).
 - [ ] Answer is direct — the concept first, no preamble.

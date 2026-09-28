@@ -2,7 +2,7 @@
 
 Parallel subagent pattern for exploring alternative interfaces for a chosen
 deepening candidate (`interfaces` mode). Based on "Design It Twice"
-`[Ousterhout]` — your first idea is unlikely to be the best.
+`[Ousterhout]` (ch.11) — your first idea is unlikely to be the best.
 
 Uses the vocabulary in `vocabulary.md` — **module**, **interface**, **seam**,
 **adapter**, **leverage**, **depth**, **locality**.
@@ -26,7 +26,7 @@ thinks while the subagents work in parallel.
 
 ## 2. Spawn the design subagents
 
-Spawn 3+ subagents in parallel, each producing a **radically different**
+Spawn 3 subagents in parallel (4 when Agent 4 applies), each producing a **radically different**
 interface for the deepened module. Give each one a separate technical brief
 (file paths, coupling details, dependency category from `deepening.md`, what
 sits behind the seam). The brief is independent of the user-facing
@@ -46,10 +46,11 @@ Design constraints — one per subagent:
   use cases and extension."
 - **Agent 3 — optimize the most common caller.** "Optimize for the most
   common caller — make the default case trivial."
-- **Agent 4 (if applicable) — ports & adapters.** "Design around ports &
-  adapters for cross-seam dependencies." (For the DDD flavor of this style,
-  see the `ddd` skill's
-  [`architecture-styles.md`](../../ddd/references/architecture-styles.md).)
+- **Agent 4 — ports & adapters.** Spawn only when any dependency is
+  category 3 or 4 (`deepening.md` §Dependency categories). "Design around
+  ports & adapters for cross-seam dependencies." (For the DDD flavor of this
+  style, see the `ddd` skill's architecture-styles reference, if
+  installed.)
 
 ### Per-agent output contract
 
